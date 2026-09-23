@@ -71,3 +71,9 @@ Testul ruleaza unealta reala de cautare si verifica daca rezultatul contine
 raspunsul LLM-ului. Pentru rularea agentului ai nevoie de cheia OpenRouter.
 
 Referinta: [apelarea uneltelor](https://developers.openai.com/api/docs/guides/function-calling).
+
+Protectii: cheia sta in `.env`, ignorat de Git si de unelte. Agentul poate doar
+lista si cauta in proiect, fara comenzi de shell sau modificari de fisiere.
+Nu urmareste legaturi catre alte foldere. Trimite modelului numai nume de fisiere,
+nu continutul lor. Sunt cel mult 3 cereri, cu timeout de 60 secunde fiecare,
+maximum 1024 tokenuri de raspuns per cerere si fara reincercari automate.
