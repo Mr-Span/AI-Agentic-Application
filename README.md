@@ -39,9 +39,8 @@ uv run python tema_1.py exemple/elena.json
 uv run python tema_1.py exemple/andrei.json
 ```
 
-Testele verifica cele patru fisiere si resping un email gresit sau o varsta
-de 0 ori -1. Poti incerca si tu aceste valori intr-un JSON: Pydantic va ridica
-`ValidationError`. Adresele de email sunt fictive.
+Testul citeste `student.json` si verifica datele Anei. Celelalte fisiere sunt
+exemple pe care le poti rula separat. Adresele de email sunt fictive.
 
 ## Tema 2
 
@@ -56,6 +55,8 @@ Fisierele care nu pot fi citite ca text UTF-8 sunt sarite.
 
 Copiaza `.env.example` in `.env` si completeaza `API_KEY` cu cheia ta OpenRouter.
 `MODEL` are valoarea din curs; o poti schimba cu un model care accepta unelte.
+Cheia se creeaza in [OpenRouter](https://openrouter.ai/settings/keys).
+OpenRouter este un serviciu online, accesat prin biblioteca `openai`.
 Cheia ramane locala, nu se publica pe GitHub.
 
 ```bash
@@ -64,9 +65,9 @@ uv run python tema2.py
 uv run python -m pytest tests/test_tema2.py
 ```
 
-Printre rezultate trebuie sa apara `pyproject.toml` si `tests/test_tema_1.py`.
-Testele ruleaza uneltele reale si verifica ordinea apelurilor cu un LLM simulat,
-deci nu au nevoie de cheie API. Rularea agentului real necesita acces la model
-in contul OpenRouter.
+Printre rezultate trebuie sa apara `pyproject.toml` si `tests/test_tema2.py`.
+Testul ruleaza unealta reala de cautare si verifica daca rezultatul contine
+`pyproject.toml`, asa cum permite cerinta. Nu foloseste simulari si nu testeaza
+raspunsul LLM-ului. Pentru rularea agentului ai nevoie de cheia OpenRouter.
 
 Referinta: [apelarea uneltelor](https://developers.openai.com/api/docs/guides/function-calling).
