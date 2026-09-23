@@ -11,3 +11,7 @@ wheels/
 
 # Fișiere temporare create de pytest
 .pytest_cache/
+
+.env
+.env.*
+!.env.example

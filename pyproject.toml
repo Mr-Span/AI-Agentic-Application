@@ -5,7 +5,9 @@ description = "Teme pentru cursul AI Agentic Application."
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
+    "openai>=3.19.0",
     "pydantic[email]>=2,<3",
+    "python-dotenv>=1.2.3",
 ]
 
 [dependency-groups]
