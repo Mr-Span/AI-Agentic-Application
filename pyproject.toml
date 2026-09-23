@@ -1,0 +1,14 @@
+[project]
+name = "ai-agentic-application"
+version = "0.1.0"
+description = "Teme de curs explicate în română: JSON, Pydantic și pytest."
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "pydantic[email]>=2,<3",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=9.1.1",
+]
