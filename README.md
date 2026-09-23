@@ -54,7 +54,7 @@ si mici. Sunt excluse `.git`, `.venv`, cache-urile Python/pytest si fisierele `.
 Fisierele care nu pot fi citite ca text UTF-8 sunt sarite.
 
 Copiaza `.env.example` in `.env` si completeaza `API_KEY` cu cheia ta OpenRouter.
-`MODEL` are valoarea din curs; o poti schimba cu un model care accepta unelte.
+`MODEL=qwen/qwen3.8-27b:free` foloseste Qwen gratuit, cu suport pentru unelte.
 Cheia se creeaza in [OpenRouter](https://openrouter.ai/settings/keys).
 OpenRouter este un serviciu online, accesat prin biblioteca `openai`.
 Cheia ramane locala, nu se publica pe GitHub.

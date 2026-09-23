@@ -88,7 +88,7 @@ if __name__ == "__main__":
     client = OpenAI(base_url="https://openrouter.ai/api/v1", api_key=cheie,
                     timeout=60, max_retries=0)
     try:
-        print(ruleaza_agent(client, os.getenv("MODEL", "minimax/minimax-m3")))
+        print(ruleaza_agent(client, os.getenv("MODEL", "qwen/qwen3.8-27b:free")))
     except APIError as eroare:
         # Nu afisam cererea HTTP sau cheia in mesajele de eroare.
         if getattr(eroare, "status_code", None) == 402:
