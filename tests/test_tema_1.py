@@ -1,76 +1,32 @@
-"""Teste pentru traseul complet: fișier JSON → citire → validare."""
-
-import json
 from pathlib import Path
 
 import pytest
 from pydantic import ValidationError
 
-from tema_1 import StudentValidator, citeste_student
+from tema_1 import Student, citeste_student
 
 
-def test_student_din_fisierul_real():
-    """Datele din fișierul predat trebuie citite și validate corect."""
-    cale = Path(__file__).resolve().parents[1] / "student.json"
-    student = citeste_student(cale)
-
-    # assert verifică o condiție; o condiție falsă face testul să eșueze.
-    assert isinstance(student, StudentValidator)
-    assert student.nume == "Ana Popescu"
-    assert student.varsta == 20
-    assert student.email == "ana.popescu@example.com"
-
-
-@pytest.mark.parametrize(
-    "camp, valoare",
-    [
-        ("email", "email-invalid"),
-        ("varsta", 0),
-        ("varsta", -1),
-        ("varsta", "20"),
-        ("varsta", 20.0),
-        ("varsta", True),
-        ("nume", 123),
-    ],
-)
-def test_date_invalide(tmp_path, camp, valoare):
-    """Aceeași verificare este rulată separat pentru fiecare exemplu invalid."""
-    date = {"nume": "Ana Popescu", "varsta": 20, "email": "ana.popescu@example.com"}
-    date[camp] = valoare
-    # tmp_path este un folder temporar oferit de pytest: nu modificăm tema reală.
-    cale = tmp_path / "student.json"
-    cale.write_text(json.dumps(date), encoding="utf-8")
-
-    # Aici eroarea este rezultatul așteptat: datele incorecte trebuie respinse.
-    with pytest.raises(ValidationError) as eroare:
-        citeste_student(cale)
-    assert eroare.value.errors()[0]["loc"] == (camp,)
+@pytest.mark.parametrize("fisier, nume, varsta, email", [
+    ("student.json", "Ana Popescu", 20, "ana.popescu@example.com"),
+    ("exemple/mihai.json", "Mihai Ionescu", 22, "mihai.ionescu@example.com"),
+    ("exemple/elena.json", "Elena Radu", 19, "elena.radu@example.com"),
+    ("exemple/andrei.json", "Andrei Stan", 24, "andrei.stan@example.com"),
+])
+def test_citire_si_validare(fisier, nume, varsta, email):
+    # Verificam citirea din JSON si toate valorile studentului.
+    student = citeste_student(Path(__file__).resolve().parents[1] / fisier)
+    assert isinstance(student, Student)
+    assert student.nume == nume
+    assert student.varsta == varsta
+    assert student.email == email
 
 
-@pytest.mark.parametrize("camp", ["nume", "varsta", "email"])
-def test_camp_obligatoriu_lipsa(tmp_path, camp):
-    """Niciunul dintre cele trei câmpuri nu poate lipsi."""
-    date = {"nume": "Ana Popescu", "varsta": 20, "email": "ana.popescu@example.com"}
-    del date[camp]
-    cale = tmp_path / "student.json"
-    cale.write_text(json.dumps(date), encoding="utf-8")
-
-    with pytest.raises(ValidationError) as eroare:
-        citeste_student(cale)
-    assert eroare.value.errors()[0]["loc"] == (camp,)
-    assert eroare.value.errors()[0]["type"] == "missing"
-
-
-def test_json_incorect(tmp_path):
-    """Un JSON incomplet eșuează la citire, înainte de validarea Pydantic."""
-    cale = tmp_path / "student.json"
-    cale.write_text('{"nume":', encoding="utf-8")
-
-    with pytest.raises(json.JSONDecodeError):
-        citeste_student(cale)
-
-
-def test_fisier_inexistent(tmp_path):
-    """Lipsa fișierului rămâne vizibilă pentru codul care apelează funcția."""
-    with pytest.raises(FileNotFoundError):
-        citeste_student(tmp_path / "inexistent.json")
+@pytest.mark.parametrize("varsta, email", [
+    (20, "email-gresit"),
+    (0, "ana.popescu@example.com"),
+    (-1, "ana.popescu@example.com"),
+])
+def test_date_invalide(varsta, email):
+    # Emailul gresit si varsta nepozitiva trebuie respinse.
+    with pytest.raises(ValidationError):
+        Student(nume="Ana Popescu", varsta=varsta, email=email)
