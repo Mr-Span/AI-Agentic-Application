@@ -9,10 +9,10 @@ PROIECT = Path(__file__).resolve().parent
 
 
 def fisiere_proiect():
-    # Excludem fisierele locale care nu fac parte din tema.
+    # Sărim peste mediul virtual, cache-uri și baza vectorială din lecția 8.
     for folder, directoare, fisiere in PROIECT.walk():
         directoare[:] = [d for d in directoare if d.lower() not in
-                        {".git", ".venv", "__pycache__", ".pytest_cache"}
+                        {".git", ".venv", "__pycache__", ".pytest_cache", "chroma_db", ".model_cache"}
                         and not (folder / d).is_symlink()
                         and not (folder / d).is_junction()]
         for nume in sorted(fisiere):
@@ -32,7 +32,7 @@ def cauta_cuvant():
         try:
             text = cale.read_text(encoding="utf-8")
         except UnicodeDecodeError:
-            continue  # Sarim peste fisierele care nu sunt text UTF-8.
+            continue  # Un PDF sau alt fișier binar nu poate fi citit ca text UTF-8.
         if "pytest" in text.lower():
             gasite.append(cale.relative_to(PROIECT).as_posix())
     return "\n".join(sorted(gasite)) or "Nu am gasit fisiere."
@@ -57,7 +57,7 @@ def ruleaza_agent(client, model):
               {"role": "user", "content":
                "Listeaza fisierele, apoi cauta pytest. Enumera toate fisierele gasite."}]
 
-    # LLM-ul apeleaza intai listarea, apoi cautarea.
+    # Cer modelului întâi lista de fișiere, apoi căutarea cuvântului pytest.
     for nume in unelte:
         raspuns = client.chat.completions.create(
             model=model, messages=mesaje, tools=tools,
@@ -90,7 +90,7 @@ if __name__ == "__main__":
     try:
         print(ruleaza_agent(client, os.getenv("MODEL", "cohere/north-mini-code:free")))
     except APIError as eroare:
-        # Nu afisam cererea HTTP sau cheia in mesajele de eroare.
+        # Afișez doar tipul erorii, ca să nu ajungă cheia API în terminal.
         if getattr(eroare, "status_code", None) == 402:
             raise SystemExit("OpenRouter: adauga credite la https://openrouter.ai/settings/credits")
         raise SystemExit(f"Eroare OpenRouter: {type(eroare).__name__}. Verifica cheia, creditul si modelul.")

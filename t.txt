@@ -1,0 +1,20 @@
+
+Exercitiu Workshop:
+
+Pentru astazi, folositi open() sa deschideti un fisier, pentru citire.
+
+Din el, cititi toate liniile de text, si numarati cate cuvinte se gasesc in acel fisier.
+
+Cautati in intregul fisier, cuvantul "marcus". Si marcus si Marcus trebuie sa fie detectate, indiferent de majuscule.
+
+Numarati de cate ori se gaseste acel cuvant in fisier.
+
+Scrieti o functie care face aceste verificari, primind un parametru ca fiind cuvantul pe care il cautam.
+
+Returnati din aceasta functie, un string care este un raport legat de cautarea acelui cuvant. Raport care arata in felul urmator:
+
+Word Search Report:
+
+Word lookup: "marcus"
+Word found :  x times
+File total word count: x words.

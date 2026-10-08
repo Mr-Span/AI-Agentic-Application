@@ -1,4 +1,4 @@
-# Python-generated files
+# Fișiere create automat de Python
 __pycache__/
 *.py[oc]
 build/
@@ -6,7 +6,7 @@ dist/
 wheels/
 *.egg-info
 
-# Virtual environments
+# Mediul virtual cu bibliotecile instalate
 .venv
 
 # Fișiere temporare create de pytest
@@ -15,3 +15,7 @@ wheels/
 .env
 .env.*
 !.env.example
+
+# Baza vectorială și modelul descărcat pentru lecția 8 rămân locale.
+chroma_db/
+.model_cache/
