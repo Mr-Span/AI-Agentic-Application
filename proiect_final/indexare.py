@@ -7,6 +7,9 @@ SURSE = Path(__file__).with_name("data_sources")
 CACHE = PROIECT / ".model_cache"
 COLECTIE = "proiect_final"
 MODEL_EMBEDDING = "sentence-transformers/all-MiniLM-L6-v2"
+MARIME_CHUNK = 800
+SUPRAPUNERE = 120
+MARIME_LOT = 100
 
 
 def conecteaza():
@@ -29,12 +32,13 @@ def incarca_model():
 
 def imparte_text(text):
     bucati = []
-    for start in range(0, len(text), 680):
-        # Înaintăm cu 680, ca să păstrăm 120 de caractere comune.
-        bucata = text[start:start + 800].strip()
+    pas = MARIME_CHUNK - SUPRAPUNERE
+    for start in range(0, len(text), pas):
+        # Păstrăm puțin text comun între două fragmente vecine.
+        bucata = text[start:start + MARIME_CHUNK].strip()
         if bucata:
             bucati.append(bucata)
-        if start + 800 >= len(text):
+        if start + MARIME_CHUNK >= len(text):
             break
     return bucati
 
@@ -52,10 +56,10 @@ def citeste_pagini(cale):
 def indexeaza(collection, model, folder=SURSE):
     if not folder.is_dir():
         raise ValueError("Lipseste folderul proiect_final/data_sources.")
-    # Refacem doar colecția proiectului final, inclusiv după ștergerea unui document.
+    # Ștergem indexul vechi, ca să nu rămână duplicate sau fișiere eliminate.
     vechi = collection.get(include=[])["ids"]
-    for start in range(0, len(vechi), 100):
-        collection.delete(ids=vechi[start:start + 100])
+    for start in range(0, len(vechi), MARIME_LOT):
+        collection.delete(ids=vechi[start:start + MARIME_LOT])
 
     total = 0
     for cale in sorted(folder.iterdir()):
@@ -66,7 +70,9 @@ def indexeaza(collection, model, folder=SURSE):
         except (OSError, ValueError, RuntimeError):
             print(f"Nu pot citi {cale.name}. Verifica documentul.")
             continue
-        texte, ids, metadate = [], [], []
+        texte = []
+        ids = []
+        metadate = []
         numar_chunk = 0
         for pagina, text in pagini:
             for bucata in imparte_text(text):
@@ -78,12 +84,16 @@ def indexeaza(collection, model, folder=SURSE):
             print(f"{cale.name}: nu contine text de indexat.")
             continue
 
-        vectori = model.encode(texte, normalize_embeddings=True).tolist()
-        # Inserăm pe loturi mici, ca să putem procesa și PDF-uri mai lungi.
-        for start in range(0, len(texte), 100):
+        # Lucrăm pe loturi mici, inclusiv când calculăm vectorii.
+        for start in range(0, len(texte), MARIME_LOT):
+            final = start + MARIME_LOT
+            lot = texte[start:final]
+            vectori = model.encode(lot, normalize_embeddings=True).tolist()
             collection.upsert(
-                ids=ids[start:start + 100], documents=texte[start:start + 100],
-                metadatas=metadate[start:start + 100], embeddings=vectori[start:start + 100],
+                ids=ids[start:final],
+                documents=lot,
+                metadatas=metadate[start:final],
+                embeddings=vectori,
             )
         total += len(texte)
         print(f"{cale.name}: {len(texte)} fragmente incarcate")
@@ -94,16 +104,13 @@ def main():
     sys.stdout.reconfigure(encoding="utf-8")
     try:
         client = conecteaza()
-    except ConnectionError as eroare:
-        raise SystemExit(str(eroare))
-    collection = client.get_or_create_collection(
-        COLECTIE, embedding_function=None, configuration={"hnsw": {"space": "cosine"}},
-    )
-    print("Incarc modelul de embeddings. Prima rulare poate dura mai mult.")
-    model = incarca_model()
-    try:
+        collection = client.get_or_create_collection(
+            COLECTIE, embedding_function=None, configuration={"hnsw": {"space": "cosine"}},
+        )
+        print("Incarc modelul de embeddings. Prima rulare poate dura mai mult.")
+        model = incarca_model()
         total = indexeaza(collection, model)
-    except ValueError as eroare:
+    except (ConnectionError, ValueError) as eroare:
         raise SystemExit(str(eroare))
     print(f"Indexare terminata: {total} fragmente in colectia {COLECTIE}.")
 

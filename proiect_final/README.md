@@ -1,102 +1,62 @@
-# Proiect final: RAG cu ChromaDB
+# Proiect final: căutare în documente cu RAG
 
-Doua programe Python, rulate separat din terminal:
+Am două programe:
 
-- [indexare.py](indexare.py) citeste documentele si le incarca in baza de date.
-- [agent.py](agent.py) raspunde folosind unealta `rag_search` si documentele deja indexate.
+- `indexare.py` citește fișierele și le pune în ChromaDB.
+- `agent.py` răspunde la întrebări folosind documentele indexate.
 
-## Pregatire
+## Cum îl pornesc
 
-Toate comenzile se ruleaza din folderul **AI-Agentic-Application**, unde este
-`pyproject.toml`, nu din subfolderul `proiect_final`.
+Rulez comenzile din folderul `AI-Agentic-Application`.
+Instalez bibliotecile o singură dată:
 
 ```powershell
 uv sync --locked --extra semantic-search
 ```
 
-In `.env` din radacina repository-ului completezi `API_KEY` cu cheia OpenRouter
-si `MODEL` cu un model care accepta apelarea uneltelor. Sunt acceptate si
-numele de la curs: `OPEN_ROUTER_API_KEY` si `OPEN_ROUTER_MODEL_NAME`.
-Daca exista ambele variante, `API_KEY` si `MODEL` au prioritate.
+În `.env` completez `API_KEY` și `MODEL` pentru OpenRouter.
+Modelul trebuie să accepte unelte. Merg și numele de la curs:
+`OPEN_ROUTER_API_KEY` și `OPEN_ROUTER_MODEL_NAME`.
 
-Modelul de embeddings este `sentence-transformers/all-MiniLM-L6-v2` si ruleaza
-local, pe CPU. La prima folosire se descarca in `.model_cache/`.
-Cheia se foloseste doar de agent, pentru cererile OpenRouter.
-
-## 1. Pornesc serverul Chroma
-
-In primul terminal:
+În primul terminal pornesc baza de date și o las deschisă:
 
 ```powershell
 uv run --extra semantic-search chroma run --path proiect_final/chroma_data --port 8000
 ```
 
-Las acest terminal deschis. Cele doua programe se conecteaza prin
-`chromadb.HttpClient(host="localhost", port=8000)`.
-
-Datele bazei raman in `proiect_final/chroma_data/`, ignorat de Git.
-La repornirea serverului folosesc aceeasi comanda si aceeasi cale.
-
-## 2. Indexez documentele
-
-In al doilea terminal:
+În al doilea terminal indexez documentele, apoi pornesc agentul:
 
 ```powershell
 uv run --extra semantic-search python -m proiect_final.indexare
-```
-
-Folderul [data_sources](data_sources) contine trei exemple de la curs:
-
-| Document | Continut |
-| --- | --- |
-| `paragraphs.txt` | Activitatile lui Marcus la o intalnire |
-| `invoices.pdf` | Patru facturi fictive |
-| `StarMaker.pdf` | Textul despre Star Maker folosit la curs |
-
-Pot adauga alte fisiere `.txt` sau `.pdf` direct in acest folder.
-Programul citeste textul PDF pe pagini cu PyMuPDF. Pentru TXT considera
-continutul ca fiind pagina 1. Un PDF scanat fara text necesita OCR separat.
-
-Textul fiecarei pagini este impartit in bucati de maximum 800 de caractere,
-cu 120 de caractere comune intre doua bucati. Fiecare fragment are metadatele:
-
-```python
-{"source": "invoices.pdf", "page": 3, "chunk": 3}
-```
-
-`chunk` incepe de la 1 si continua pe toate paginile acelui document.
-Vectorii sunt normalizati si incarcati cu `collection.upsert`, pe loturi.
-Colectia `proiect_final` foloseste distanta cosinus.
-
-La o noua rulare refacem continutul acestei colectii. Astfel nu apar duplicate
-si nu raman fragmente din documentele eliminate. Fisierele goale, tipurile
-nesuportate si documentele care nu pot fi citite nu sunt indexate.
-Programul afiseaza numarul de fragmente si se inchide.
-
-## 3. Pornesc agentul
-
-Dupa terminarea indexarii, in acelasi al doilea terminal:
-
-```powershell
 uv run --extra semantic-search python -m proiect_final.agent
 ```
 
-Intrebarea este validata cu Pydantic: trebuie sa fie text si sa nu fie goala.
-Agentul cere unealta `rag_search` cu argumentul `question`.
-Validam din nou argumentele uneltei, apoi cautam cele mai apropiate 10 fragmente
-din intreaga colectie. Daca baza are mai putine, folosim cate sunt disponibile.
+Scriu `quit` ca să ies din agent. Opresc serverul cu `Ctrl+C`.
 
-Contextul include textul, fisierul, pagina si numarul fiecarui fragment.
-Este validat cu `RootModel[str]` si returnat ca string simplu.
-Il adaugam in mesajele conversatiei cu `role="tool"` si `tool_call_id`,
-apoi cerem modelului raspunsul final. Unealta face cautarea local; agentul
-este cel care comunica cu OpenRouter.
+## Ce se întâmplă în cod
 
-Raspunsul trebuie sa fie in romana si sa citeze sursa, de exemplu
-`[invoices.pdf, pagina 3]`. Daca fragmentele nu contin raspunsul, modelului
-i se cere sa spuna asta, fara sa inventeze informatii.
+În `data_sources` sunt `paragraphs.txt`, `invoices.pdf` și `StarMaker.pdf`.
+Pot adăuga și alte fișiere TXT sau PDF. PDF-urile sunt citite pe pagini;
+pentru TXT folosesc pagina 1. Un PDF scanat are nevoie de OCR separat.
 
-Intrebari de demonstratie, una pentru fiecare document:
+Împart textul în fragmente de 800 de caractere, cu 120 de caractere comune.
+Fiecare fragment are `source` (numele fișierului), `page` și `chunk`.
+Numărul fragmentului începe de la 1 pentru fiecare document.
+
+Calculez vectorii local cu `sentence-transformers/all-MiniLM-L6-v2` și îi pun
+în colecția `proiect_final` prin `upsert`, în loturi de cel mult 100.
+La reindexare refac această colecție, ca să elimin duplicatele și sursele vechi.
+
+Agentul validează întrebarea cu Pydantic și cere unealta `rag_search`.
+Unealta validează și argumentele primite de la model, caută cele mai apropiate
+10 fragmente (sau câte există) și întoarce text simplu, validat cu `RootModel[str]`.
+Textul conține sursa, pagina și numărul fragmentului.
+
+Pun rezultatul în mesajul `tool`, apoi cer răspunsul final în română, cu surse
+și pagini. Dacă documentele nu conțin răspunsul, modelului i se cere să spună asta.
+La lipsa serverului, a indexului sau la o eroare API afișez un mesaj scurt.
+
+## Întrebări de încercat
 
 ```text
 What did Marcus do during the meeting?
@@ -105,53 +65,26 @@ According to StarMaker.pdf, how does the narrator explore the universe?
 quit
 ```
 
-Documentele de exemplu sunt in engleza, asa ca intrebarile de verificare sunt
-tot in engleza. Raspunsurile agentului sunt cerute in romana.
-Pentru factura `INV-2026-1003`, verific pagina 3: suma este `$2,175.00`.
-Pentru Marcus, sursa este `paragraphs.txt`, pagina 1.
+Documentele sunt în engleză, dar răspunsurile sunt cerute în română.
+Factura din exemplu are valoarea `$2,175.00`, la pagina 3 din `invoices.pdf`.
 
-## Comenzi locale pe Windows
+## Dacă uv nu este în PATH pe Windows
 
-Daca `uv` nu este in PATH, instalarea se poate face cu:
-
-```powershell
-..\.tools\uv\uv.exe sync --locked --extra semantic-search
-```
-
-Dupa instalare, aceleasi trei etape pot fi rulate direct:
+Pentru instalare folosesc `..\.tools\uv\uv.exe sync --locked --extra semantic-search`.
+După instalare, cele trei comenzi merg și cu executabilele locale:
 
 ```powershell
-# Primul terminal:
 .\.venv\Scripts\chroma.exe run --path proiect_final/chroma_data --port 8000
-
-# Al doilea terminal:
 .\.venv\Scripts\python.exe -m proiect_final.indexare
 .\.venv\Scripts\python.exe -m proiect_final.agent
 ```
 
-Pentru oprire scriu `quit` la agent si apas `Ctrl+C` in terminalul serverului.
-
-## Verificari minime
+## Verificare scurtă
 
 ```powershell
-.\.venv\Scripts\python.exe -m pytest tests/test_proiect_final.py -q
+.\.venv\Scripts\python.exe -m pytest tests/test_proiect_final.py -q -p no:cacheprovider --basetemp=../.tools/pytest-proiect-final
 ```
 
-Sunt trei teste: metadatele si reindexarea fara duplicate, validarea Pydantic
-pentru intrebare si context, apoi fluxul unealta-raspuns cu un LLM simulat.
-Testele nu consuma credit OpenRouter.
-
-Verificat local pe 22 octombrie 2026: serverul HTTP a primit cele trei
-documente, iar doua rulari ale indexarii au pastrat **133 de fragmente**, fara
-duplicate. Cele trei intrebari de demonstratie au fost adresate si modelului
-OpenRouter configurat. Agentul a raspuns in romana, cu citatii: Marcus din
-`paragraphs.txt`, factura de `$2,175.00` din `invoices.pdf`, pagina 3, si
-calatoria naratorului din `StarMaker.pdf`. Cele trei teste automate trec.
-
-Daca serverul nu este pornit sau colectia nu este indexata, programul afiseaza
-ce pas trebuie rulat. Erorile OpenRouter sunt afisate prin tipul lor, fara cheie.
-Modelul configurat trebuie sa accepte `tools` si `tool_choice`.
-
-Referinte: [Chroma client-server](https://docs.trychroma.com/docs/run-chroma/client-server),
-[function calling din documentatia OpenAI](https://developers.openai.com/api/docs/guides/function-calling)
-si [RootModel din Pydantic](https://docs.pydantic.dev/latest/concepts/models/#rootmodel-and-custom-root-types).
+Sunt doar trei teste: indexarea și metadatele, validarea Pydantic, apoi trimiterea
+contextului către model. Folosesc un model simulat și nu consumă credit API.
+Baza `chroma_data`, modelele descărcate și `.env` rămân locale, ignorate de Git.
