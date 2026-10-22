@@ -81,8 +81,8 @@ maximum 1024 tokenuri de raspuns per cerere si fara reincercari automate.
 
 ## Lectiile recuperate
 
-Exemple adaptate dupa [repository-ul profesorului](https://github.com/doublemacro/python-ai/tree/0fc43bc4329646bf9d3e87a5e837ebef23a2e3b3),
-versiunea `0fc43bc`, verificata pe 8 octombrie 2026. Am pastrat numele
+Exemple adaptate dupa [repository-ul profesorului](https://github.com/doublemacro/python-ai/tree/279c1072d5259bde2bbc3863f482295adbf2feb4),
+versiunea `279c107`, verificata pe 22 octombrie 2026. Am pastrat numele
 fisierelor de la curs si am explicat pasii in comentarii in romana.
 
 | Fisier | Ce exersez |
@@ -94,15 +94,17 @@ fisierelor de la curs si am explicat pasii in comentarii in romana.
 | `lesson_05_json_data.py` | Citirea si validarea datelor din user_data.json |
 | `lesson_06_simplest_agent.py` | Agent cu unelte pentru teste, rezumate si numarat cuvinte |
 | `lesson_07_string_manipulation.py` | Indexare, lower, split, join, count si citirea unui text |
-| `lesson_08_semantic_search.py` | Citirea unui PDF, embeddings, cautare semantica si raspuns cu surse |
+| `lesson_08_semantic_search.py` | PDF-uri, embeddings, BM25, cautare hibrida si unelte pentru agent |
+| `lesson_09_langgraph.py` | Stare, noduri, ramuri conditionale si analiza logurilor |
 | `99_temp.py` | Afisarea liniilor care contin un cuvant intreg |
 | `workshop_cuvinte.py` | Rezolvarea exercitiului din t.txt |
 | `main_target.py` | Varianta agentului care are doar unealta pentru teste |
 | `main.py` | Exemplul initial cu o functie de salut |
 
-`user_data.json`, `paragraphs.txt`, `t.txt`, `StarMaker.pdf`, `pytest.ini` si testele
-de validare sunt preluate din repository-ul profesorului. Pentru lectia 8
-am adaugat separat bibliotecile necesare, prin extra `semantic-search`.
+`user_data.json`, `paragraphs.txt`, `t.txt`, `StarMaker.pdf`, `invoices.pdf`,
+`info.json`, `log_report.txt`, `log_report_ok.txt`, `pytest.ini` si testele de
+validare sunt preluate din repository-ul profesorului. Pentru lectiile 8 si 9
+bibliotecile se instaleaza prin extra `semantic-search`, respectiv `langgraph`.
 
 Parcurg lectiile in ordinea numerelor. Fiecare se ruleaza separat, de exemplu:
 
@@ -151,13 +153,19 @@ ruleaza cu acelasi Python ca agentul, inclusiv pe Windows.
 test real si fluxul uneltelor cu raspunsuri simulate. Testele nu consuma API.
 Apelurile reale catre OpenRouter nu au fost verificate in aceasta completare.
 
-## Ultima lectie: 8, cautare semantica in PDF
+## Lectia 8: cautare semantica si hibrida in PDF-uri
 
-Pornim de la PDF-ul `StarMaker.pdf`, exact ca la curs. Citim textul paginilor,
+Pornim de la `StarMaker.pdf` si `invoices.pdf`, exact ca la curs. Citim textul paginilor,
 il impartim in bucati, transformam bucatile in liste de numere (embeddings),
 apoi le salvam in Chroma. Transformam si intrebarea in numere si cautam
 bucatile cu sens apropiat. La final, putem cere modelului un raspuns folosind
 doar acele fragmente. Acest ultim pas se numeste RAG.
+
+In varianta noua combinam cautarea semantica cu BM25. Prima cauta dupa sens,
+iar BM25 ajuta la potriviri de cuvinte si coduri, de exemplu `INV-2026-1003`.
+Combinam pozitiile din cele doua clasamente: locul 1 primeste 1 punct,
+locul 2 primeste 1/2 si asa mai departe. Primele 8 fragmente merg in raspuns.
+La reindexare refacem intrarile acelui PDF, ca sa evitam duplicatele.
 
 Modelul de embeddings ruleaza local; OpenRouter este folosit pentru formularea
 raspunsului. Sunt doua modele cu roluri diferite. Pentru prima incercare
@@ -186,6 +194,7 @@ Scrie cate o intrebare, de exemplu:
 What does the narrator see when looking at the stars?
 How does the narrator travel through the universe?
 Who is the Star Maker?
+What is the amount due for INV-2026-1003?
 quit
 ```
 
@@ -193,6 +202,15 @@ PDF-ul este in engleza, asa ca incepem cu intrebari in engleza pentru acest
 model. Fiecare fragment afisat are sursa si numarul paginii din PDF.
 Deschide pagina indicata si compara textul: o cautare semantica gaseste
 fragmente apropiate ca sens, dar nu garanteaza ca fiecare contine raspunsul.
+Pentru factura `INV-2026-1003`, cauta printre rezultate pagina 3 din
+`invoices.pdf`, cu suma `$2,175.00`. Verifica numarul facturii din fragment,
+fiindca paginile au un format asemanator si pot primi scoruri apropiate.
+
+Ca sa compari cu varianta initiala, foloseste doar cautarea semantica intr-un PDF:
+
+```powershell
+uv run --extra semantic-search python lesson_08_semantic_search.py --fara-llm --doar-semantic --pdf StarMaker.pdf
+```
 
 Pentru raspunsuri in romana, folosind `API_KEY` si `MODEL` din `.env`:
 
@@ -200,14 +218,21 @@ Pentru raspunsuri in romana, folosind `API_KEY` si `MODEL` din `.env`:
 uv run --extra semantic-search python lesson_08_semantic_search.py
 ```
 
-Aceasta varianta trimite intrebarea si fragmentele gasite la OpenRouter.
-Programul afiseaza si fragmentele, ca sa poti verifica raspunsul si citatiile.
+Agentul cere unealta `search_starmaker` pentru intrebarile despre PDF-uri.
+Python valideaza intrebarea, cauta fragmentele, cere raspunsul din context si
+trimite rezultatul inapoi agentului. Pentru un salut sau alta conversatie,
+modelul poate raspunde direct. Folosim `API_KEY` si `MODEL` din `.env`, cu aceeasi
+compatibilitate pentru numele variabilelor de la profesor.
+
+Varianta cu agent trimite intrebarea si fragmentele gasite la OpenRouter.
+Poti compara citatiile cu fragmentele afisate in varianta `--fara-llm`.
 `quit` opreste ambele variante. Baza `chroma_db/` si modelul `.model_cache/`
 raman locale si nu se trimit pe GitHub.
 
 Bibliotecile folosite: [Chroma](https://docs.trychroma.com/reference/python/collection),
 [PyMuPDF4LLM](https://pymupdf.readthedocs.io/en/latest/pymupdf4llm/api.html)
 si [Sentence Transformers](https://sbert.net/docs/package_reference/sentence_transformer/model.html).
+Pentru BM25 folosim [rank_bm25](https://github.com/dorianbrown/rank_bm25).
 
 ## Exercitii pentru lectia 8
 
@@ -231,15 +256,15 @@ Fa-le in ordine si noteaza ce ai observat. Nu trebuie sa rescrii tot programul.
    Noteaza numarul nou de bucati si compara fragmentele pentru aceeasi intrebare.
    La final revino la 800 si 120.
 
-4. **Citeste scorurile.** Rezultatul cautarii contine si `result['distances'][0]`.
-   Adauga temporar `print(result['distances'][0])` dupa cautare, in `main`.
+4. **Citeste scorurile.** Porneste cu `--fara-llm --doar-semantic`.
+   Rezultatul cautarii contine si `result['distances'][0]`.
+   Adauga temporar `print(result['distances'][0])` dupa cautarea semantica, in `main`.
    Compara primele distante cu fragmentele. O distanta cosinus mai mica
    inseamna ca vectorii sunt mai apropiati; nu este un procent de adevar.
 
-5. **Verifica un raspuns.** Porneste varianta cu OpenRouter si intreaba
-   `Who is the Star Maker?`. Verifica fiecare pagina citata in PDF.
-   Apoi intreaba `What is the current price of Bitcoin?`: raspunsul nu trebuie
-   inventat din cunostintele modelului, deoarece fragmentele cartii nu au aceasta informatie.
+5. **Verifica factura.** Intreaba `What is the amount due for INV-2026-1003?`,
+   apoi verifica pagina 3 din `invoices.pdf`. Compara cautarea hibrida cu
+   `--doar-semantic`. Porneste si varianta cu agent si verifica pagina citata.
 
 Pentru recapitularea lectiei 7, ruleaza `uv run python workshop_cuvinte.py`:
 trebuie sa obtii 8 aparitii pentru `marcus` si 51 de cuvinte in total.
@@ -251,7 +276,87 @@ uv run python -m pytest tests/test_semantic_search.py -q
 uv run python -m pytest -q
 ```
 
-Verificare locala pe 8 octombrie 2026: toate cele 26 de teste trec. PDF-ul
-profesorului are 21 de pagini, indexate in 132 de fragmente cu setarile initiale.
-Am verificat si cautarea cu modelul real, filtrarea dupa PDF si reindexarea
-fara duplicate. Raspunsurile OpenRouter sunt verificate prin simulari in teste.
+## Ultima lectie: 9, LangGraph si rapoarte de log
+
+`State` tine numele raportului, erorile gasite si raspunsul. Fiecare nod este
+o functie Python care primeste starea si intoarce campurile schimbate.
+O muchie conditionala alege urmatorul nod dupa citirea raportului.
+`compile()` pregateste graful, iar `invoke()` il ruleaza cu starea initiala.
+
+```mermaid
+flowchart LR
+    A[Citeste raportul] --> B{Are erori?}
+    B -->|Da| C[Raporteaza incidentul]
+    B -->|Nu| D[Totul este OK]
+    C --> E[Final]
+    D --> E
+```
+
+Instaleaza toate bibliotecile cursului:
+
+```powershell
+uv sync --locked --extra semantic-search --extra langgraph
+```
+
+Pentru aceasta lectie sunt suficiente `uv sync --locked --extra langgraph` si
+Python; nu ai nevoie de modelul de embeddings sau de cheie OpenRouter.
+
+Ruleaza cele doua exemple, pe rand:
+
+```powershell
+uv run --extra langgraph python lesson_09_langgraph.py
+uv run --extra langgraph python lesson_09_langgraph.py --log log_report_ok.txt
+```
+
+Primul gaseste **2 erori** si simuleaza raportarea unui incident.
+Al doilea gaseste **0 erori** si alege nodul `report_all_ok`.
+Programul verifica nivelul de log de dupa data si ora, astfel ca un mesaj
+`INFO` care contine cuvantul `ERROR` ramane o linie informativa.
+
+Daca `uv` nu este in PATH, foloseste executabilul `..\.tools\uv\uv.exe`
+in loc de `uv`. Bibliotecile sunt deja instalate in mediul virtual local,
+deci poti rula si direct:
+
+```powershell
+.\.venv\Scripts\python.exe lesson_09_langgraph.py
+.\.venv\Scripts\python.exe lesson_09_langgraph.py --log log_report_ok.txt
+```
+
+Pentru cererea HTTP de demonstratie de la curs:
+
+```powershell
+uv run --extra langgraph python lesson_09_langgraph.py --api
+```
+
+`--api` trimite un POST la JSONPlaceholder cu numarul de erori in titlu.
+Serviciul simuleaza crearea unui element si nu salveaza un incident real.
+Fara acest argument, exemplul ruleaza local, cu raspuns simulat.
+Fluxul urmeaza [Graph API din documentatia LangGraph](https://docs.langchain.com/oss/python/langgraph/graph-api).
+
+## Exercitii pentru lectia 9
+
+1. Ruleaza ambele rapoarte si urmareste ce nod se executa dupa citire.
+   Deschide `build_graph()` si gaseste linia care face alegerea intre ramuri.
+2. Copiaza `log_report_ok.txt` in `log_exercitiu.txt` si adauga o linie
+   `2026-10-22 10:00:00 ERROR Connection failed`. Ruleaza cu
+   `--log log_exercitiu.txt`: trebuie sa gasesti o eroare.
+3. Adauga o linie `2026-10-22 10:01:00 INFO No ERROR found` in acelasi fisier.
+   Numarul de erori trebuie sa ramana 1. Explica de ce.
+4. Adauga in `State` un camp `warnings` si numara separat liniile cu nivel
+   `WARNING`. In raportul profesorului sunt doua. Pastreaza decizia de incident
+   bazata pe `errors`, ca sa vezi diferenta dintre date si alegerea ramurii.
+5. Pentru recapitularea JSON, citeste `info.json` cu `json.load` si afiseaza
+   mesajele din `logs` care au `level == "ERROR"`. Trebuie sa gasesti un mesaj.
+
+## Verificare
+
+```powershell
+uv run --extra semantic-search --extra langgraph python -m pytest -q
+```
+
+Pe 22 octombrie 2026, cele 43 de teste trec. Acopera cautarea hibrida,
+argumentele uneltelor, pastrarea surselor, ambele ramuri LangGraph si erorile
+API-ului demo. Cererile OpenRouter si POST sunt simulate in teste.
+Cautarea in PDF-uri este verificata separat cu modelul local real: 132 de
+fragmente din carte si 4 din facturi. Factura `INV-2026-1003` apare intre
+rezultate la pagina 3, iar reindexarea pastreaza numarul de fragmente.
