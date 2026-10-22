@@ -360,3 +360,114 @@ API-ului demo. Cererile OpenRouter si POST sunt simulate in teste.
 Cautarea in PDF-uri este verificata separat cu modelul local real: 132 de
 fragmente din carte si 4 din facturi. Factura `INV-2026-1003` apare intre
 rezultate la pagina 3, iar reindexarea pastreaza numarul de fragmente.
+
+## Temele RAG Search
+
+Cele trei programe folosesc `data_sources/`. Am pus acolo fisierele de exemplu
+`paragraphs.txt`, `StarMaker.pdf` si `invoices.pdf`. Poti adauga alte PDF-uri
+sau fisiere text UTF-8 in acelasi folder. Programul incarca toate fisierele
+obisnuite din folder, iar cele goale sau care nu pot fi citite sunt sarite.
+Subfolderele si fisierele ascunse sunt ignorate.
+
+Pentru PDF-uri pastram pagina reala, numarata de la 1. Pentru un fisier text,
+tot continutul este considerat pagina 1. `source` este mereu numele fisierului.
+Baza acestor teme este separata de lectia 8, in `chroma_db/teme_rag/`.
+La fiecare pornire sunt reincarcate sursele, ca sa nu ramana date vechi.
+
+Bibliotecile sunt aceleasi ca pentru lectia 8:
+
+```powershell
+uv sync --locked --extra semantic-search
+```
+
+Cheia si modelul OpenRouter se citesc din `.env`, ca in celelalte teme.
+Comenzile de mai jos se ruleaza din `AI-Agentic-Application`.
+
+### Tema 3.1: cautare intr-un fisier ales
+
+Cod: [tema_3_1.py](tema_3_1.py).
+
+```powershell
+.\.venv\Scripts\python.exe tema_3_1.py
+```
+
+Programul imparte textul in bucati de 800 de caractere, cu 120 comune intre
+bucati, calculeaza embeddings si le incarca in Chroma. La introducerea unei
+intrebari verifica mai intai daca exista sursa. Apoi foloseste
+`collection.query(n_results=3, where={"source": sursa}, ...)`.
+LLM-ul primeste cele cel mult trei fragmente si trebuie sa raspunda in romana,
+cu numele fisierului si pagina.
+
+Scrie numele exact al fisierului, apoi o virgula si intrebarea:
+
+```text
+paragraphs.txt, Despre cine este vorba in text?
+nu_exista.txt, Cine apare in text?
+quit
+```
+
+Pentru prima intrebare, raspunsul trebuie sa vorbeasca despre Marcus si sa
+citeze `paragraphs.txt`, pagina 1. Pentru a doua, programul anunta ca nu are
+date despre acel fisier.
+
+### Tema 3.2: limita pentru distanta cosinus
+
+Cod: [tema_3_2.py](tema_3_2.py). Refoloseste citirea, ingestion-ul si cautarea
+din prima tema, apoi elimina rezultatele cu `distance > 0.5`.
+
+```powershell
+.\.venv\Scripts\python.exe tema_3_2.py
+```
+
+O distanta mai mica este mai buna. Valoarea `0.5` este acceptata.
+Daca nu ramane niciun fragment, afiseaza `Nu s-a gasit niciun rezultat relevant.`
+si nu face cererea catre LLM.
+
+Fisierele exemplu sunt in engleza. Pentru a verifica filtrarea, incearca:
+
+```text
+paragraphs.txt, What did Marcus do during the meeting?
+paragraphs.txt, How to replace a car engine cylinder?
+quit
+```
+
+### Tema optionala: 15 candidati, reranking, top 4
+
+Cod: [tema_3_optionala.py](tema_3_optionala.py).
+
+Am folosit strategia [Retrieve & Re-Rank din documentatia Sentence Transformers](https://www.sbert.net/examples/sentence_transformer/applications/retrieve_rerank/README.html).
+Cautarea aduce pana la 15 fragmente din sursa ceruta. Pastram limita de distanta
+din tema 3.2, apoi un `CrossEncoder` citeste perechile intrebare-fragment si
+le ordoneaza dupa relevanta. Folosim modelul `cross-encoder/ms-marco-MiniLM-L6-v2`.
+
+Conform [documentatiei CrossEncoder](https://sbert.net/docs/cross_encoder/usage/usage.html),
+`Sigmoid` transforma scorurile acestui model in valori intre 0 si 1.
+Aici scorul mai mare este mai bun. Pastram scoruri de cel putin `0.5` si trimitem
+LLM-ului cel mult primele 4 rezultate. Daca toate sunt eliminate, afisam mesajul
+de lipsa a rezultatelor, fara sa apelam LLM-ul.
+
+```powershell
+.\.venv\Scripts\python.exe tema_3_optionala.py
+```
+
+La prima rulare se descarca si modelul de reranking. Pentru verificare:
+
+```text
+paragraphs.txt, What did Marcus do during the meeting?
+StarMaker.pdf, What is the recipe for a chocolate cake?
+quit
+```
+
+### Verificari minime pentru cele trei teme
+
+Pentru a vedea doar fragmentele, fara consum OpenRouter, adauga `--fara-llm`:
+
+```powershell
+.\.venv\Scripts\python.exe tema_3_1.py --fara-llm
+.\.venv\Scripts\python.exe tema_3_2.py --fara-llm
+.\.venv\Scripts\python.exe tema_3_optionala.py --fara-llm
+.\.venv\Scripts\python.exe -m pytest tests/test_teme_rag.py -q
+```
+
+Sunt doar trei teste: filtrarea pe sursa, pragul distantei si selectarea top 4
+dupa reranking. Verifica si ca lipsa rezultatelor opreste apelul LLM.
