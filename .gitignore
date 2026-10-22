@@ -19,3 +19,6 @@ wheels/
 # Baza vectorială și modelul descărcat pentru lecția 8 rămân locale.
 chroma_db/
 .model_cache/
+
+# Datele serverului Chroma pentru proiectul final rămân locale.
+proiect_final/chroma_data/

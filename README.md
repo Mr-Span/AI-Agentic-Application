@@ -2,6 +2,9 @@
 
 Teme pentru curs, in Python. Proiect initializat cu uv, teste cu pytest.
 
+Proiectul final este in [proiect_final](proiect_final/README.md): indexare separata,
+server Chroma local si agent cu unealta RAG Search, cu input si output validate prin Pydantic.
+
 ## Tema 1
 
 In `tema_1.py` citesc datele din `student.json` cu `json.load`, apoi le
