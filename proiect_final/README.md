@@ -88,3 +88,10 @@ După instalare, cele trei comenzi merg și cu executabilele locale:
 Sunt doar trei teste: indexarea și metadatele, validarea Pydantic, apoi trimiterea
 contextului către model. Folosesc un model simulat și nu consumă credit API.
 Baza `chroma_data`, modelele descărcate și `.env` rămân locale, ignorate de Git.
+
+## Noutăți din curs
+
+La verificarea din 27 octombrie 2026, profesorul a adăugat doar o lecție despre
+un agent în LangGraph. În repository nu apare un enunț nou sau un termen nou
+pentru proiectul final. Păstrez cerința RAG primită pe platformă.
+Explicațiile și sursa verificată sunt în [LECTIA_10.md](../LECTIA_10.md).

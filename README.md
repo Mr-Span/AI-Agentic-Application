@@ -84,8 +84,8 @@ maximum 1024 tokenuri de raspuns per cerere si fara reincercari automate.
 
 ## Lectiile recuperate
 
-Exemple adaptate dupa [repository-ul profesorului](https://github.com/doublemacro/python-ai/tree/279c1072d5259bde2bbc3863f482295adbf2feb4),
-versiunea `279c107`, verificata pe 22 octombrie 2026. Am pastrat numele
+Exemple adaptate dupa [repository-ul profesorului](https://github.com/doublemacro/python-ai/tree/3a861279e8449a00b93399bb32567b1d83b585e8),
+versiunea `3a86127`, verificata pe 27 octombrie 2026. Am pastrat numele
 fisierelor de la curs si am explicat pasii in comentarii in romana.
 
 | Fisier | Ce exersez |
@@ -99,6 +99,7 @@ fisierelor de la curs si am explicat pasii in comentarii in romana.
 | `lesson_07_string_manipulation.py` | Indexare, lower, split, join, count si citirea unui text |
 | `lesson_08_semantic_search.py` | PDF-uri, embeddings, BM25, cautare hibrida si unelte pentru agent |
 | `lesson_09_langgraph.py` | Stare, noduri, ramuri conditionale si analiza logurilor |
+| `lesson_10_langgraph.py` | Agent in LangGraph, istoric de mesaje, unealta de incidente si limita de pasi |
 | `99_temp.py` | Afisarea liniilor care contin un cuvant intreg |
 | `workshop_cuvinte.py` | Rezolvarea exercitiului din t.txt |
 | `main_target.py` | Varianta agentului care are doar unealta pentru teste |
@@ -279,7 +280,7 @@ uv run python -m pytest tests/test_semantic_search.py -q
 uv run python -m pytest -q
 ```
 
-## Ultima lectie: 9, LangGraph si rapoarte de log
+## Lectia 9: LangGraph si rapoarte de log
 
 `State` tine numele raportului, erorile gasite si raspunsul. Fiecare nod este
 o functie Python care primeste starea si intoarce campurile schimbate.
@@ -363,6 +364,24 @@ API-ului demo. Cererile OpenRouter si POST sunt simulate in teste.
 Cautarea in PDF-uri este verificata separat cu modelul local real: 132 de
 fragmente din carte si 4 din facturi. Factura `INV-2026-1003` apare intre
 rezultate la pagina 3, iar reindexarea pastreaza numarul de fragmente.
+
+## Ultima lectie: 10, agent cu unelte in LangGraph
+
+Profesorul a adaugat [lectia 10 pe 26 octombrie](https://github.com/doublemacro/python-ai/commit/3a861279e8449a00b93399bb32567b1d83b585e8).
+Am completat `lesson_10_langgraph.py`, cu comentarii scurte in romana.
+Graful citeste logul, lasa agentul sa ceara o unealta si revine la agent pentru raspuns.
+Un reducer pastreaza mesajele vechi, iar numarul de pasi este limitat la 6.
+
+```powershell
+uv sync --locked --extra langgraph
+uv run --extra langgraph python lesson_10_langgraph.py --demo
+uv run --extra langgraph python lesson_10_langgraph.py --demo --log log_report_ok.txt
+```
+
+`--demo` merge fara cheie si fara apeluri LLM. Fara acest argument, folosim
+modelul OpenRouter din `.env`. Raportarea incidentului este simulata in ambele moduri.
+Explicatiile, exercitiile si noutatile despre proiectul final sunt in [LECTIA_10.md](LECTIA_10.md).
+Am verificat ambele ramuri in demo si cele trei teste din `tests/test_langgraph_agent.py`.
 
 ## Temele RAG Search
 
