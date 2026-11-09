@@ -1,104 +1,89 @@
-# Proiect final: căutare în documente cu RAG
+# Proiect final: manualele și garanțiile electrocasnicelor
 
-Am două programe:
+Programul ajută la găsirea informațiilor din manualele și condițiile de garanție
+pentru 10 electrocasnice. Răspunsul este în română și arată documentul și pagina.
 
-- `indexare.py` citește fișierele și le pune în ChromaDB.
-- `agent.py` răspunde la întrebări folosind documentele indexate.
+Am două programe principale:
 
-Pentru direcția aleasă, am colectat separat [documentele pentru 10 electrocasnice](electrocasnice/README.md):
-manuale oficiale și condiții de garanție pentru România, cu modele și surse verificate.
-Acesta este setul documentar nou; comenzile de mai jos folosesc încă exemplele inițiale.
+- `indexare.py` citește fișierele TXT/PDF și le indexează în ChromaDB.
+- `agent.py` primește întrebări în terminal și folosește unealta `rag_search`.
 
-## Cum îl pornesc
+## Pregătire
 
-Rulez comenzile din folderul `AI-Agentic-Application`.
-Instalez bibliotecile o singură dată:
+Rulez comenzile din folderul `AI-Agentic-Application`:
 
 ```powershell
 uv sync --locked --extra semantic-search
+uv run --extra semantic-search python proiect_final/electrocasnice/descarca_documente.py
 ```
 
-În `.env` completez `API_KEY` și `MODEL` pentru OpenRouter.
-Modelul trebuie să accepte unelte. Merg și numele de la curs:
-`OPEN_ROUTER_API_KEY` și `OPEN_ROUTER_MODEL_NAME`.
+A doua comandă descarcă documentele dacă lipsesc. Există 10 manuale și 3 garanții
+comune pe producător, în `proiect_final/electrocasnice/documente`.
+[Catalogul](electrocasnice/README.md) arată modelele și sursele oficiale.
 
-În primul terminal pornesc baza de date și o las deschisă:
+În `.env` completez `API_KEY` și `MODEL` pentru OpenRouter. Modelul trebuie să
+accepte unelte. Merg și numele de la curs: `OPEN_ROUTER_API_KEY` și `OPEN_ROUTER_MODEL_NAME`.
+
+## Rulare
+
+În primul terminal pornesc Chroma și îl las deschis:
 
 ```powershell
 uv run --extra semantic-search chroma run --path proiect_final/chroma_data --port 8000
 ```
 
-În al doilea terminal indexez documentele, apoi pornesc agentul:
+În al doilea terminal indexez, apoi pornesc agentul:
 
 ```powershell
 uv run --extra semantic-search python -m proiect_final.indexare
 uv run --extra semantic-search python -m proiect_final.agent
 ```
 
-Scriu `quit` ca să ies din agent. Opresc serverul cu `Ctrl+C`.
+Aleg numărul aparatului din listă, apoi scriu întrebările. `quit` închide agentul.
+Pentru alt aparat pornesc din nou agentul. Opresc serverul cu `Ctrl+C`.
 
-## Ce se întâmplă în cod
+## Cum funcționează
 
-În `data_sources` sunt `paragraphs.txt`, `invoices.pdf` și `StarMaker.pdf`.
-Pot adăuga și alte fișiere TXT sau PDF. PDF-urile sunt citite pe pagini;
-pentru TXT folosesc pagina 1. Un PDF scanat are nevoie de OCR separat.
+Indexarea parcurge toate fișierele TXT/PDF din folderul documentelor.
+Pentru manualele multilingve folosește secțiunile în română din catalog și
+păstrează numărul original al paginii PDF. TXT este considerat pagina 1.
+Manualul frigiderului este în engleză. Imaginile fără text nu sunt interpretate.
 
-Împart textul în fragmente de 800 de caractere, cu 120 de caractere comune.
-Fiecare fragment are `source` (numele fișierului), `page` și `chunk`.
-Numărul fragmentului începe de la 1 pentru fiecare document.
+Textul este împărțit în fragmente de 800 de caractere, cu 120 comune.
+Fiecare fragment are `source`, `page` și `chunk`.
+Vectorii se calculează local cu `sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2`.
+La prima rulare modelul se descarcă în `.model_cache`.
+Folosesc `upsert`, în loturi de 100, în colecția `proiect_final_electrocasnice`.
+La reindexare refac doar această colecție, ca să nu rămână duplicate sau surse vechi.
 
-Calculez vectorii local cu `sentence-transformers/all-MiniLM-L6-v2` și îi pun
-în colecția `proiect_final` prin `upsert`, în loturi de cel mult 100.
-La reindexare refac această colecție, ca să elimin duplicatele și sursele vechi.
+Agentul validează întrebarea cu Pydantic. Unealta validează separat argumentele,
+caută semantic 10 fragmente din manualul și garanția aparatului ales și întoarce
+text simplu, validat cu `RootModel[str]`. Dacă sunt mai puține fragmente, le folosește pe cele disponibile.
+Textul ajunge în mesajul `tool`, apoi modelul formulează răspunsul final.
+Fragmentele găsite sunt trimise către OpenRouter pentru acest răspuns.
 
-Agentul validează întrebarea cu Pydantic și cere unealta `rag_search`.
-Unealta validează și argumentele primite de la model, caută cele mai apropiate
-10 fragmente (sau câte există) și întoarce text simplu, validat cu `RootModel[str]`.
-Textul conține sursa, pagina și numărul fragmentului.
+Răspunsul trebuie să indice fișierul și pagina PDF. Dacă informația nu apare în
+documente, agentului i se cere să spună asta. Condițiile generale nu confirmă
+automat garanția unui aparat personal sau o extensie promoțională.
+Formularea LLM-ului se verifică în documentul și pagina citate.
 
-Pun rezultatul în mesajul `tool`, apoi cer răspunsul final în română, cu surse
-și pagini. Dacă documentele nu conțin răspunsul, modelului i se cere să spună asta.
-La lipsa serverului, a indexului sau la o eroare API afișez un mesaj scurt.
+## Exemple
 
-## Întrebări de încercat
-
-```text
-What did Marcus do during the meeting?
-What is the amount due for invoice INV-2026-1003 for Cedar Grove Clinic?
-According to StarMaker.pdf, how does the narrator explore the universe?
-quit
-```
-
-Documentele sunt în engleză, dar răspunsurile sunt cerute în română.
-Factura din exemplu are valoarea `$2,175.00`, la pagina 3 din `invoices.pdf`.
-
-## Dacă uv nu este în PATH pe Windows
-
-Pentru instalare folosesc `..\.tools\uv\uv.exe sync --locked --extra semantic-search`.
-După instalare, cele trei comenzi merg și cu executabilele locale:
-
-```powershell
-.\.venv\Scripts\chroma.exe run --path proiect_final/chroma_data --port 8000
-.\.venv\Scripts\python.exe -m proiect_final.indexare
-.\.venv\Scripts\python.exe -m proiect_final.agent
-```
+- Aleg **2, mașina de spălat rufe**: `Ce documente sunt necesare pentru o solicitare de garantie?`
+- Aleg **6, aparatul de cafea**: `Cum se curata unitatea de infuzare?`
+- Aleg **7, blenderul**: `Pot folosi accesorii de la alt producator?`
+- Încerc și: `Cat costa exact reparatia acestui aparat?` Dacă documentele nu dau un preț, agentul trebuie să spună că informația lipsește.
 
 ## Verificare scurtă
 
 ```powershell
-.\.venv\Scripts\python.exe -m pytest tests/test_proiect_final.py -q -p no:cacheprovider --basetemp=../.tools/pytest-proiect-final
+uv run python -m pytest tests/test_proiect_final.py -q -p no:cacheprovider --basetemp=../.tools/pytest-final-electrocasnice
 ```
 
-Sunt doar trei teste: indexarea și metadatele, validarea Pydantic, apoi trimiterea
-contextului către model. Folosesc un model simulat și nu consumă credit API.
-Baza `chroma_data`, modelele descărcate și `.env` rămân locale, ignorate de Git.
+Sunt doar trei teste: indexarea și paginile, validarea și filtrarea pe aparat,
+apoi trimiterea contextului în mesajele LLM. Folosesc un LLM simulat.
 
-## Noutăți din curs
-
-La verificarea din **9 noiembrie 2026**, ultima modificare a profesorului este
-[un comentariu din 2 noiembrie](https://github.com/doublemacro/python-ai/commit/f8615857dbf667812edf8bcdde92efd992cd6a12)
-despre împărțirea textului în cuvinte, în lecția 8.
-Nu apare un enunț nou sau un termen nou pentru proiectul final, nici anunțuri
-în issues sau releases. Păstrez cerința RAG primită pe platformă.
-Lecția 10 rămâne ultima lecție nouă; explicațiile sunt în [LECTIA_10.md](../LECTIA_10.md).
-Această verificare privește GitHub-ul public, nu eventualele anunțuri de pe platforma cursului.
+Dacă `uv` nu este în PATH, pot folosi `..\.tools\uv\uv.exe`.
+După instalare, programele merg și cu `.\.venv\Scripts\python.exe`,
+iar serverul cu `.\.venv\Scripts\chroma.exe`.
+Documentele producătorilor, baza Chroma, modelele și `.env` rămân locale.

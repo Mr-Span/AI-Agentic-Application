@@ -62,7 +62,7 @@ Nu există apeluri LLM sau consum de credit API în această colectare.
 - Manualele comune unei familii pot include funcții sau accesorii opționale. Codul comercial complet nu înseamnă că toate variantele au aceleași accesorii.
 - Manualul robotului are pagini tipărite alăturate: 15 pagini PDF, cu numerotare tipărită până la 29. Citările trebuie să folosească pagina fizică din PDF.
 - Pentru mașina de spălat vase, suportul verificat este UK, dar manualul ales este RO și documentul de garanție este pentru România.
-- Setul este separat de exemplele inițiale din `proiect_final/data_sources`. Programele actuale nu citesc automat acest catalog. Integrarea trebuie să țină cont de model, limbă și tipul documentului.
+- `indexare.py` citește acum acest folder și catalogul, păstrând secțiunile RO și paginile PDF originale. `agent.py` caută doar în manualul și garanția aparatului ales. Exemplele vechi sunt păstrate în fișierele cursului, în afara proiectului final.
 
 ## Întrebări potrivite pentru demonstrație
 

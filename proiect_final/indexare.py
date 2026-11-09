@@ -1,15 +1,21 @@
+import json
 import os
 import sys
 from pathlib import Path
 
 PROIECT = Path(__file__).resolve().parents[1]
-SURSE = Path(__file__).with_name("data_sources")
+CATALOG = Path(__file__).with_name("electrocasnice") / "catalog.json"
+SURSE = CATALOG.parent / "documente"
 CACHE = PROIECT / ".model_cache"
-COLECTIE = "proiect_final"
-MODEL_EMBEDDING = "sentence-transformers/all-MiniLM-L6-v2"
+COLECTIE = "proiect_final_electrocasnice"
+MODEL_EMBEDDING = "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"
 MARIME_CHUNK = 800
 SUPRAPUNERE = 120
 MARIME_LOT = 100
+
+
+def citeste_catalog():
+    return json.loads(CATALOG.read_text(encoding="utf-8"))
 
 
 def conecteaza():
@@ -43,19 +49,33 @@ def imparte_text(text):
     return bucati
 
 
-def citeste_pagini(cale):
+def citeste_pagini(cale, document=None):
+    document = document or {}
     if cale.suffix.lower() == ".pdf":
         import pymupdf
 
-        with pymupdf.open(cale) as document:
-            return [(numar + 1, pagina.get_text()) for numar, pagina in enumerate(document)]
-    # Un fișier TXT este tratat ca o singură pagină.
-    return [(1, cale.read_text(encoding="utf-8-sig"))]
+        with pymupdf.open(cale) as pdf:
+            pagini = [(numar + 1, pagina.get_text()) for numar, pagina in enumerate(pdf)]
+    else:
+        # Un fișier TXT este tratat ca o singură pagină.
+        pagini = [(1, cale.read_text(encoding="utf-8-sig"))]
+    # Alegem româna fără să schimbăm numerele paginilor din PDF.
+    if document.get("pagini_ro"):
+        prima, ultima = document["pagini_ro"]
+        pagini = [(numar, text) for numar, text in pagini if prima <= numar <= ultima]
+    if document.get("inceput_text") and pagini:
+        numar, text = pagini[0]
+        pagini[0] = (numar, text[text.index(document["inceput_text"]):])
+    if document.get("sfarsit_text") and pagini:
+        numar, text = pagini[-1]
+        pagini[-1] = (numar, text[:text.index(document["sfarsit_text"])])
+    return pagini
 
 
 def indexeaza(collection, model, folder=SURSE):
     if not folder.is_dir():
-        raise ValueError("Lipseste folderul proiect_final/data_sources.")
+        raise ValueError("Lipsesc documentele. Ruleaza intai proiect_final/electrocasnice/descarca_documente.py.")
+    documente = {d["fisier"]: d for d in citeste_catalog()["documente"]}
     # Ștergem indexul vechi, ca să nu rămână duplicate sau fișiere eliminate.
     vechi = collection.get(include=[])["ids"]
     for start in range(0, len(vechi), MARIME_LOT):
@@ -66,7 +86,7 @@ def indexeaza(collection, model, folder=SURSE):
         if not cale.is_file() or cale.suffix.lower() not in {".txt", ".pdf"}:
             continue
         try:
-            pagini = citeste_pagini(cale)
+            pagini = citeste_pagini(cale, documente.get(cale.name))
         except (OSError, ValueError, RuntimeError):
             print(f"Nu pot citi {cale.name}. Verifica documentul.")
             continue

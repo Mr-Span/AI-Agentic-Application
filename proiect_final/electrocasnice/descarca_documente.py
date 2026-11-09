@@ -4,9 +4,9 @@ import json
 import re
 from html.parser import HTMLParser
 from pathlib import Path
+from urllib.request import urlopen
 
 import pymupdf
-import requests
 
 FOLDER = Path(__file__).resolve().parent
 DOCUMENTE = FOLDER / "documente"
@@ -47,20 +47,20 @@ def descarca(document):
     cale = DOCUMENTE / document["fisier"]
     if cale.exists():
         return cale
-    raspuns = requests.get(document["url"], timeout=90)
-    raspuns.raise_for_status()
+    with urlopen(document["url"], timeout=90) as raspuns:
+        continut = raspuns.read()
+        url_final = raspuns.url
     if document.get("format_sursa") == "html":
         parser = TextDinPagina()
-        parser.feed(raspuns.content.decode("utf-8"))
+        parser.feed(continut.decode("utf-8"))
         text = "".join(parser.text_main or parser.text)
         text = re.sub(r"[ \t]+", " ", text)
         text = re.sub(r"\n\s*\n+", "\n\n", text).strip()
         if len(text) < 500 or "garan" not in text.lower():
             raise ValueError("Pagina nu contine textul conditiilor de garantie.")
-        antet = f"Sursa: {raspuns.url}\nPiata: Romania\nVerificat: 2026-11-09\nFormat original: HTML\n\n"
+        antet = f"Sursa: {url_final}\nPiata: Romania\nVerificat: 2026-11-09\nFormat original: HTML\n\n"
         continut = (antet + text).encode("utf-8")
     else:
-        continut = raspuns.content
         if not continut.startswith(b"%PDF"):
             raise ValueError("Serverul nu a returnat un PDF.")
     # Salvăm doar după primirea completă a documentului.
@@ -104,7 +104,7 @@ def main():
             rezultat = verifica(cale, document)
             rezultate.append(rezultat)
             print(f"OK {cale.name}: {rezultat['pagini']} pagini, {rezultat['caractere']} caractere", flush=True)
-        except (requests.RequestException, OSError, ValueError, RuntimeError) as eroare:
+        except (OSError, ValueError, RuntimeError) as eroare:
             erori.append({"id": document["id"], "eroare": str(eroare)})
             print(f"EROARE {document['id']}: {eroare}", flush=True)
     raport = {"verificat_la": catalog["verificat_la"], "documente": rezultate, "erori": erori}

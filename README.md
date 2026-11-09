@@ -2,8 +2,9 @@
 
 Teme pentru curs, in Python. Proiect initializat cu uv, teste cu pytest.
 
-Proiectul final este in [proiect_final](proiect_final/README.md): indexare separata,
-server Chroma local si agent cu unealta RAG Search, cu input si output validate prin Pydantic.
+Proiectul final este in [proiect_final](proiect_final/README.md): un asistent pentru
+manualele si garantiile a 10 electrocasnice. Are indexare separata, server Chroma
+local si agent cu unealta RAG Search, cu input si output validate prin Pydantic.
 
 ## Tema 1
 
