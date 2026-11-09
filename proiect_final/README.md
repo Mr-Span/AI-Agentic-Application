@@ -93,6 +93,18 @@ Reindexarea reface toată colecția, inclusiv fișierele noi; nu pornește singu
 Interfața se folosește local și nu cere cheia API în browser: o citește din `.env`.
 Opresc ambele programe cu `Ctrl+C` în terminalele lor.
 
+## Cum schimb stilul răspunsurilor
+
+Editez [stil_raspuns.txt](stil_raspuns.txt). Acolo aleg tonul, lungimea și formatul.
+Acum răspunsul începe direct, continuă cu pași simpli dacă sunt necesari și pune
+sursele la final. Nu mai are limita fixă de trei propoziții.
+
+De exemplu, pot adăuga: `Explică pentru un începător`, `Folosește maximum 100 de cuvinte`
+sau `Compară variantele într-un tabel`. Scriu reguli clare, care nu se contrazic.
+Fișierul este recitit la fiecare răspuns: nu trebuie să reindexez sau să repornesc
+aplicația când schimb doar stilul. Răspunsurile deja afișate nu se modifică.
+Regulile despre folosirea documentelor și citarea paginilor rămân în `agent.py`.
+
 ## Cum funcționează
 
 Indexarea parcurge toate fișierele TXT/PDF din folderul documentelor.

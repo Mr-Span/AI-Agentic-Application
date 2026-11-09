@@ -95,7 +95,10 @@ def test_validare_intrebare_si_context_text():
         agent.rag_search('{"question":25}', collection, model, surse)
 
 
-def test_agentul_trimite_contextul_in_mesajul_tool(monkeypatch):
+def test_agentul_trimite_contextul_in_mesajul_tool(monkeypatch, tmp_path):
+    stil = tmp_path / "stil.txt"
+    stil.write_text("Raspuns direct, pasi numerotati, surse la final.", encoding="utf-8")
+    monkeypatch.setattr(agent, "STIL_RASPUNS", stil)
     apel = ChatCompletionMessage(role="assistant", tool_calls=[{
         "id": "rag_1", "type": "function", "function": {
             "name": "rag_search", "arguments": '{"question":"Ce document este necesar?"}',
@@ -116,8 +119,11 @@ def test_agentul_trimite_contextul_in_mesajul_tool(monkeypatch):
     assert mesaje[2] == {"role": "tool", "tool_call_id": "rag_1", "content": cautare.return_value}
     assert client.chat.completions.create.call_count == 2
     assert client.chat.completions.create.call_args.kwargs["tool_choice"] == "none"
+    instructiuni = client.chat.completions.create.call_args.kwargs["messages"][-1]["content"]
+    assert stil.read_text(encoding="utf-8") in instructiuni
 
     # Dacă serviciul trimite un răspuns gol, afișăm un mesaj clar și în chat.
+    stil.write_text("Explica pe intelesul unui incepator.", encoding="utf-8")
     client.chat.completions.create.side_effect = [
         SimpleNamespace(choices=[SimpleNamespace(message=apel)]),
         SimpleNamespace(choices=[SimpleNamespace(message=ChatCompletionMessage(role="assistant", content=None))]),
@@ -126,6 +132,7 @@ def test_agentul_trimite_contextul_in_mesajul_tool(monkeypatch):
     rezultat = agent.raspunde(client, "model-test", mesaje, None, None, surse)
     assert rezultat == mesaje[-1]["content"]
     assert "Incearca din nou" in rezultat
+    assert "Explica pe intelesul unui incepator." in client.chat.completions.create.call_args.kwargs["messages"][-1]["content"]
 
     # Ramura fără rezultate se încheie fără al doilea apel LLM.
     client.reset_mock()
