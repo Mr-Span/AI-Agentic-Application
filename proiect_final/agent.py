@@ -142,7 +142,8 @@ def main():
     if not cheie:
         raise SystemExit("Completeaza API_KEY in fisierul .env din radacina repository-ului.")
     model_llm = os.getenv("MODEL") or os.getenv("OPEN_ROUTER_MODEL_NAME") or "cohere/north-mini-code:free"
-    client = OpenAI(base_url="https://openrouter.ai/api/v1", api_key=cheie, timeout=60, max_retries=0)
+    adresa_api = os.getenv("API_BASE_URL") or "https://openrouter.ai/api/v1"
+    client = OpenAI(base_url=adresa_api, api_key=cheie, timeout=60, max_retries=0)
     model_embedding = incarca_model()
     descriere = f"Aparatul ales: {aparat['categorie']}, {aparat['producator']}, model {aparat['model']}. Piata: Romania."
     for camp in ("model_alias", "familie", "note"):
@@ -166,7 +167,7 @@ def main():
         try:
             print("agent>", raspunde(client, model_llm, mesaje, collection, model_embedding, surse))
         except APIError as eroare:
-            print(f"Eroare OpenRouter: {type(eroare).__name__}. Verifica cheia, modelul si creditul.")
+            print(f"Eroare API: {type(eroare).__name__}. Verifica cheia, modelul si limita de utilizare.")
             mesaje = mesaje[:1]
         except ValueError as eroare:
             print(str(eroare))

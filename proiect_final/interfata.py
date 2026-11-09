@@ -116,13 +116,14 @@ def main():
     if trimite:
         try:
             intrebare = IntrebareRAG(question=text)
-            load_dotenv(PROIECT / ".env")
+            load_dotenv(PROIECT / ".env", override=True)
             cheie = os.getenv("API_KEY") or os.getenv("OPEN_ROUTER_API_KEY")
             if not cheie:
                 st.error("Lipsește API_KEY din .env.")
                 return
             model_llm = os.getenv("MODEL") or os.getenv("OPEN_ROUTER_MODEL_NAME") or "cohere/north-mini-code:free"
-            client = OpenAI(base_url="https://openrouter.ai/api/v1", api_key=cheie, timeout=60, max_retries=0)
+            adresa_api = os.getenv("API_BASE_URL") or "https://openrouter.ai/api/v1"
+            client = OpenAI(base_url=adresa_api, api_key=cheie, timeout=60, max_retries=0)
             mesaje = st.session_state.mesaje + [{"role": "user", "content": intrebare.question}]
             with st.spinner("Caut..."):
                 # Fără filtru de fișier: căutăm în întreaga colecție.
@@ -131,7 +132,7 @@ def main():
         except ValidationError:
             st.error("Scrie o întrebare.")
         except APIError as eroare:
-            st.error(f"OpenRouter: {type(eroare).__name__}. Verifică cheia, modelul și creditul.")
+            st.error(f"API: {type(eroare).__name__}. Verifică cheia, modelul și limita de utilizare.")
         except ValueError as eroare:
             st.error(str(eroare))
         except Exception:

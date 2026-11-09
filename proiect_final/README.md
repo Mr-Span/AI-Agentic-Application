@@ -24,6 +24,24 @@ comune pe producător, în `proiect_final/electrocasnice/documente`.
 În `.env` completez `API_KEY` și `MODEL` pentru OpenRouter. Modelul trebuie să
 accepte unelte. Merg și numele de la curs: `OPEN_ROUTER_API_KEY` și `OPEN_ROUTER_MODEL_NAME`.
 
+### Alternativă: Google AI Studio
+
+Pot folosi și Gemini prin aceeași bibliotecă `openai`.
+Generez cheia mea în [Google AI Studio](https://aistudio.google.com/api-keys),
+apoi modific doar aceste valori în `.env` din rădăcina repository-ului:
+
+```dotenv
+API_KEY=cheia_mea_google
+MODEL=gemini-3.5-flash-lite
+API_BASE_URL=https://generativelanguage.googleapis.com/v1beta/openai/
+```
+
+Repornesc interfața după schimbarea configurației. Nu public cheia în GitHub.
+Modelul are [nivel gratuit](https://ai.google.dev/gemini-api/docs/pricing#gemini-3.5-flash-lite),
+cu limitele proiectului afișate în AI Studio. Pentru OpenRouter folosesc adresa
+`https://openrouter.ai/api/v1` și o cheie OpenRouter.
+O cheie validă poate primi o eroare și când se consumă cota gratuită; asta nu înseamnă că a expirat.
+
 ## Rulare
 
 În primul terminal pornesc Chroma și îl las deschis:
@@ -93,7 +111,7 @@ Agentul validează întrebarea cu Pydantic. Unealta validează separat argumente
 caută semantic 10 fragmente din manualul și garanția aparatului ales și întoarce
 text simplu, validat cu `RootModel[str]`. Dacă sunt mai puține fragmente, le folosește pe cele disponibile.
 Textul ajunge în mesajul `tool`, apoi modelul formulează răspunsul final.
-Fragmentele găsite sunt trimise către OpenRouter pentru acest răspuns.
+Fragmentele găsite sunt trimise furnizorului API configurat pentru acest răspuns.
 
 Răspunsul trebuie să indice fișierul și pagina PDF. Dacă informația nu apare în
 documente, agentului i se cere să spună asta. Condițiile generale nu confirmă
