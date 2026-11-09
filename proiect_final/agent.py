@@ -90,8 +90,9 @@ def raspunde(client, model_llm, mesaje, collection, model_embedding, surse=None)
 
     # 4. Modelul răspunde folosind rezultatul. Reamintim și limba răspunsului.
     mesaje_finale = mesaje + [{"role": "system", "content": INSTRUCTIUNI}]
+    # Modelul are nevoie de loc și pentru raționament, și pentru răspuns.
     final = client.chat.completions.create(
-        model=model_llm, messages=mesaje_finale, tools=[UNEALTA_RAG], tool_choice="none", max_tokens=1024,
+        model=model_llm, messages=mesaje_finale, tools=[UNEALTA_RAG], tool_choice="none", max_tokens=4096,
     ).choices[0].message
     mesaj_final = final.model_dump(exclude_none=True)
     mesaj_final["content"] = final.content or "Modelul nu a trimis un raspuns text. Incearca din nou."

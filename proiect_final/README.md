@@ -62,15 +62,14 @@ uv run --extra semantic-search --extra interfata streamlit run proiect_final/int
 Deschid **http://localhost:8501**. Dacă `uv` nu este în PATH, după instalare pot rula
 `.\.venv\Scripts\python.exe -m streamlit run proiect_final/interfata.py`.
 
-1. În **Biblioteca de documente** văd fișierele și starea lor: `Indexat` sau `De indexat`.
-2. Deschid **Încarcă documente**, aleg PDF/TXT și apăs **Salvează fișierele**.
-   TXT trebuie să fie UTF-8; limita este 50 MB pe fișier. Fișierele existente nu se suprascriu.
-3. Apăs **Indexează documentele** și aștept mesajul de terminare.
-4. Aleg un aparat sau selectez documentele încărcate, scriu întrebarea și apăs **Întreabă**.
-5. Răspunsul apare în chat, cu fișierul și pagina. Pot descărca sursa din **Deschide un document**.
+1. Aleg doar **Electrocasnicul**, scriu întrebarea și apăs **Întreabă**.
+2. Pentru fișiere noi folosesc bara laterală: **Încarcă PDF sau TXT**, **Salvează**, apoi **Indexează**.
+3. În **Fișiere** văd documentele existente și le pot descărca apăsând pe numele lor.
 
-La schimbarea aparatului sau a documentelor începe o conversație nouă.
-Butonul **Conversație nouă** șterge doar conversația din sesiunea curentă.
+Interfața caută în toate documentele indexate, fără selectarea manuală a fișierelor.
+Producătorul și modelul aparatului ales sunt transmise agentului pentru căutare și răspuns.
+La schimbarea aparatului începe o conversație nouă. **Șterge chatul** golește conversația curentă.
+TXT trebuie să fie UTF-8; limita este 50 MB pe fișier. Fișierele existente nu se suprascriu.
 Încărcarea salvează local fișierele în același folder de documente, ignorat de Git.
 Reindexarea reface toată colecția, inclusiv fișierele noi; nu pornește singură la încărcare.
 Interfața se folosește local și nu cere cheia API în browser: o citește din `.env`.

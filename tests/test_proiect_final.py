@@ -72,6 +72,12 @@ def test_validare_intrebare_si_context_text():
     assert context == "[garantie.txt, pagina 1, fragment 3]\nEste necesara dovada achizitiei."
     assert collection.query.call_args.kwargs["n_results"] == 10
     assert collection.query.call_args.kwargs["where"] == {"source": {"$in": surse}}
+    # Interfața caută în toate documentele, fără selectarea fișierelor.
+    collection.reset_mock()
+    agent.rag_search('{"question":"Ce document este necesar?"}', collection, model)
+    assert collection.query.call_args.kwargs["where"] is None
+    collection.count.assert_called_once()
+    collection.get.assert_not_called()
     with pytest.raises(ValidationError):
         agent.rag_search('{"question":25}', collection, model, surse)
 
