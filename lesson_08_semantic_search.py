@@ -25,6 +25,7 @@ class SearchRequest(BaseModel):
 
 
 def tokenize(text):
+    # Împărțim textul în cuvinte.
     # Pentru BM25, Marcus și marcus trebuie să fie același cuvânt.
     return re.findall(r"\b\w+\b", text.lower())
 

@@ -84,9 +84,14 @@ maximum 1024 tokenuri de raspuns per cerere si fara reincercari automate.
 
 ## Lectiile recuperate
 
-Exemple adaptate dupa [repository-ul profesorului](https://github.com/doublemacro/python-ai/tree/3a861279e8449a00b93399bb32567b1d83b585e8),
-versiunea `3a86127`, verificata pe 27 octombrie 2026. Am pastrat numele
+Exemple adaptate dupa [repository-ul profesorului](https://github.com/doublemacro/python-ai/tree/f8615857dbf667812edf8bcdde92efd992cd6a12),
+versiunea `f861585`, verificata pe 9 noiembrie 2026. Am pastrat numele
 fisierelor de la curs si am explicat pasii in comentarii in romana.
+
+De la verificarea din 27 octombrie, profesorul a adaugat doar un comentariu
+la `tokenize`, in lectia 8, pe 2 noiembrie. Functia imparte textul in cuvinte
+si il trece la litere mici pentru BM25; functiona deja asa in proiect.
+Am preluat clarificarea. Nu sunt lectii noi sau schimbari de dependinte.
 
 | Fisier | Ce exersez |
 | --- | --- |

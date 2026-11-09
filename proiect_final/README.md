@@ -91,7 +91,10 @@ Baza `chroma_data`, modelele descărcate și `.env` rămân locale, ignorate de 
 
 ## Noutăți din curs
 
-La verificarea din 27 octombrie 2026, profesorul a adăugat doar o lecție despre
-un agent în LangGraph. În repository nu apare un enunț nou sau un termen nou
-pentru proiectul final. Păstrez cerința RAG primită pe platformă.
-Explicațiile și sursa verificată sunt în [LECTIA_10.md](../LECTIA_10.md).
+La verificarea din **9 noiembrie 2026**, ultima modificare a profesorului este
+[un comentariu din 2 noiembrie](https://github.com/doublemacro/python-ai/commit/f8615857dbf667812edf8bcdde92efd992cd6a12)
+despre împărțirea textului în cuvinte, în lecția 8.
+Nu apare un enunț nou sau un termen nou pentru proiectul final, nici anunțuri
+în issues sau releases. Păstrez cerința RAG primită pe platformă.
+Lecția 10 rămâne ultima lecție nouă; explicațiile sunt în [LECTIA_10.md](../LECTIA_10.md).
+Această verificare privește GitHub-ul public, nu eventualele anunțuri de pe platforma cursului.
