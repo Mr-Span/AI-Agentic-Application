@@ -23,9 +23,10 @@ class ContextRAG(RootModel[str]):
 INSTRUCTIUNI = (
     "Write the answer entirely in Romanian, even when the question and documents are in English. "
     "Use only facts from rag_search. If the context does not answer the question, say so. "
-    "Use only the selected appliance and the Romanian warranty terms. "
+    "When an appliance is selected, use only that appliance and its Romanian warranty terms. "
     "Answer only the question, in at most three short sentences. Prefer paraphrasing to direct quotations. "
     "Preserve negations, exceptions and conditions. Do not assume optional accessories or warranty extensions apply. "
+    "Excerpts may be incomplete: never conclude that no other documents or requirements exist just because they are not mentioned. "
     "Describe only the terms explicitly stated in the manufacturer's document, without adding legal interpretations. "
     "Do not confirm a personal warranty claim without the necessary purchase information. "
     "Cite each fact as [filename, pagina N], using the page number from the context label. "
@@ -92,8 +93,10 @@ def raspunde(client, model_llm, mesaje, collection, model_embedding, surse=None)
     final = client.chat.completions.create(
         model=model_llm, messages=mesaje_finale, tools=[UNEALTA_RAG], tool_choice="none", max_tokens=1024,
     ).choices[0].message
-    mesaje.append(final.model_dump(exclude_none=True))
-    return final.content or "Modelul nu a trimis un raspuns text."
+    mesaj_final = final.model_dump(exclude_none=True)
+    mesaj_final["content"] = final.content or "Modelul nu a trimis un raspuns text. Incearca din nou."
+    mesaje.append(mesaj_final)
+    return mesaj_final["content"]
 
 
 def alege_aparat(catalog):

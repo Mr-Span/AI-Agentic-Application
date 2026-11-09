@@ -97,3 +97,13 @@ def test_agentul_trimite_contextul_in_mesajul_tool(monkeypatch):
     assert mesaje[2] == {"role": "tool", "tool_call_id": "rag_1", "content": cautare.return_value}
     assert client.chat.completions.create.call_count == 2
     assert client.chat.completions.create.call_args.kwargs["tool_choice"] == "none"
+
+    # Dacă serviciul trimite un răspuns gol, afișăm un mesaj clar și în chat.
+    client.chat.completions.create.side_effect = [
+        SimpleNamespace(choices=[SimpleNamespace(message=apel)]),
+        SimpleNamespace(choices=[SimpleNamespace(message=ChatCompletionMessage(role="assistant", content=None))]),
+    ]
+    mesaje = [{"role": "user", "content": "Ce document este necesar?"}]
+    rezultat = agent.raspunde(client, "model-test", mesaje, None, None, surse)
+    assert rezultat == mesaje[-1]["content"]
+    assert "Incearca din nou" in rezultat

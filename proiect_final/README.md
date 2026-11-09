@@ -42,6 +42,40 @@ uv run --extra semantic-search python -m proiect_final.agent
 Aleg numărul aparatului din listă, apoi scriu întrebările. `quit` închide agentul.
 Pentru alt aparat pornesc din nou agentul. Opresc serverul cu `Ctrl+C`.
 
+## Interfața cu chat
+
+Pot folosi și `interfata.py`, o pagină locală făcută cu Streamlit. Folosește
+aceeași indexare și același agent ca programele din terminal.
+
+Instalez și dependența pentru interfață:
+
+```powershell
+uv sync --locked --extra semantic-search --extra interfata
+```
+
+Las serverul Chroma pornit în primul terminal, ca mai sus. În al doilea rulez:
+
+```powershell
+uv run --extra semantic-search --extra interfata streamlit run proiect_final/interfata.py
+```
+
+Deschid **http://localhost:8501**. Dacă `uv` nu este în PATH, după instalare pot rula
+`.\.venv\Scripts\python.exe -m streamlit run proiect_final/interfata.py`.
+
+1. În **Biblioteca de documente** văd fișierele și starea lor: `Indexat` sau `De indexat`.
+2. Deschid **Încarcă documente**, aleg PDF/TXT și apăs **Salvează fișierele**.
+   TXT trebuie să fie UTF-8; limita este 50 MB pe fișier. Fișierele existente nu se suprascriu.
+3. Apăs **Indexează documentele** și aștept mesajul de terminare.
+4. Aleg un aparat sau selectez documentele încărcate, scriu întrebarea și apăs **Întreabă**.
+5. Răspunsul apare în chat, cu fișierul și pagina. Pot descărca sursa din **Deschide un document**.
+
+La schimbarea aparatului sau a documentelor începe o conversație nouă.
+Butonul **Conversație nouă** șterge doar conversația din sesiunea curentă.
+Încărcarea salvează local fișierele în același folder de documente, ignorat de Git.
+Reindexarea reface toată colecția, inclusiv fișierele noi; nu pornește singură la încărcare.
+Interfața se folosește local și nu cere cheia API în browser: o citește din `.env`.
+Opresc ambele programe cu `Ctrl+C` în terminalele lor.
+
 ## Cum funcționează
 
 Indexarea parcurge toate fișierele TXT/PDF din folderul documentelor.
@@ -66,6 +100,9 @@ Răspunsul trebuie să indice fișierul și pagina PDF. Dacă informația nu apa
 documente, agentului i se cere să spună asta. Condițiile generale nu confirmă
 automat garanția unui aparat personal sau o extensie promoțională.
 Formularea LLM-ului se verifică în documentul și pagina citate.
+La verificarea manuală, modelul configurat a dat și un răspuns greșit despre
+actele necesare pentru garanție, deși cita pagina. Citația singură nu confirmă
+corectitudinea răspunsului; verific pasajul original.
 
 ## Exemple
 

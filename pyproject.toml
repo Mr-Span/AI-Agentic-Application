@@ -21,6 +21,9 @@ langgraph = [
     "langgraph>=1.2.16",
     "requests>=2.34.2",
 ]
+interfata = [
+    "streamlit>=1.67,<2",
+]
 
 [dependency-groups]
 dev = [
