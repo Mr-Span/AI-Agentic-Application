@@ -5,6 +5,10 @@ Am două programe:
 - `indexare.py` citește fișierele și le pune în ChromaDB.
 - `agent.py` răspunde la întrebări folosind documentele indexate.
 
+Pentru direcția aleasă, am colectat separat [documentele pentru 10 electrocasnice](electrocasnice/README.md):
+manuale oficiale și condiții de garanție pentru România, cu modele și surse verificate.
+Acesta este setul documentar nou; comenzile de mai jos folosesc încă exemplele inițiale.
+
 ## Cum îl pornesc
 
 Rulez comenzile din folderul `AI-Agentic-Application`.

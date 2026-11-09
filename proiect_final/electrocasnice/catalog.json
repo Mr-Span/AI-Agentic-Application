@@ -1,0 +1,257 @@
+{
+  "piata": "Romania",
+  "verificat_la": "2026-11-09",
+  "scop": "10 modele demonstrative, selectate dupa documentatia oficiala disponibila. Nu este o recomandare de cumparare sau o confirmare a garantiei unui aparat personal.",
+  "documente": [
+    {
+      "id": "manual_frigider",
+      "fisier": "bosch_kfn96vpea_manual_en.pdf",
+      "tip": "manual",
+      "url": "https://media3.bosch-home.com/Documents/9001690354_A.pdf",
+      "limba": "en",
+      "dovada_model": "KFN96VPEA",
+      "note": "Modelul complet apare pe coperta. Nu a fost confirmat un manual RO pentru acest model.",
+      "sha256": "ae0a7877a8f7987b7863173ab0e9a75c47d620bd762f4ae06fa530b5f9eb6279",
+      "pagini_pdf": 32
+    },
+    {
+      "id": "manual_spalat_rufe",
+      "fisier": "bosch_wgg244z2by_manual_ro.pdf",
+      "tip": "manual",
+      "url": "https://media3.bsh-group.com/Documents/9001916486_A.pdf",
+      "limba": "ro",
+      "dovada_model": "WGG244Z2BY",
+      "sha256": "2d06bdf34d89fb617e94d6310c36e37a4904fd576662e12a0aa6c27eb6e39e5c",
+      "pagini_pdf": 56
+    },
+    {
+      "id": "manual_uscator",
+      "fisier": "bosch_wth85207by_manual_ro.pdf",
+      "tip": "manual",
+      "url": "https://media3.bsh-group.com/Documents/9001746360_B.pdf",
+      "limba": "ro",
+      "dovada_model": "WTH85207BY",
+      "sha256": "fadb2b6d7cb11b1d77658a37b096b93aed76db4aa729e7088f010b79848ad4c7",
+      "pagini_pdf": 48
+    },
+    {
+      "id": "manual_spalat_vase",
+      "fisier": "bosch_sms4hvi02e_manual_ro.pdf",
+      "tip": "manual",
+      "url": "https://media3.bosch-home.com/Documents/9001902771_C.pdf",
+      "limba": "ro",
+      "dovada_model": "SMS4HVI02E",
+      "sha256": "d9e0b5570919262c6df223a9bb55856983ce18b97f971f15e750c61ec05cbb8b",
+      "pagini_pdf": 56
+    },
+    {
+      "id": "manual_microunde",
+      "fisier": "bosch_ffl020ms2_manual_ro.pdf",
+      "tip": "manual",
+      "url": "https://media3.bosch-home.com/Documents/9001625725_I.pdf",
+      "limba": "ro",
+      "dovada_model": "FFL020M",
+      "note": "Manual comun familiei FFL020M..., din care face parte FFL020MS2.",
+      "sha256": "43fa96071e19a8ce848eb0512131ec5c2de69614a53b8c809435e83805b15223",
+      "pagini_pdf": 20
+    },
+    {
+      "id": "manual_cafea",
+      "fisier": "philips_ep2220_manual_multilingv.pdf",
+      "tip": "manual",
+      "url": "https://dam.versuni.com/m/43f5d99f5574a42e/original/CO_2025_800-Series_1200-Series_2200-Series_3200-Series_Manual-Philips_EU9.pdf",
+      "limba": "multilingv, include ro",
+      "pagini_ro": [
+        348,
+        369
+      ],
+      "dovada_model": "EP2220",
+      "note": "Manual comun mai multor serii; sectiunea RO este la paginile fizice PDF 348-369. Accesoriile si functiile pot depinde de varianta.",
+      "sha256": "f8765b6c1374f16f8c2edb6a208e7a37cf53dfcb49723984688e3e87f77403f3",
+      "pagini_pdf": 635
+    },
+    {
+      "id": "manual_blender",
+      "fisier": "philips_hr3760_manual_multilingv.pdf",
+      "tip": "manual",
+      "url": "https://dam.versuni.com/m/6ed49ddaed94eec9/original/3000-088-3641-3_EU9_2-2_HR3760_UM_V3-1-DFU.pdf",
+      "limba": "multilingv, include ro",
+      "pagini_ro": [
+        24,
+        26
+      ],
+      "dovada_model": "HR3760",
+      "note": "Manualul include variantele HR3760. Recipientul on-the-go nu trebuie presupus inclus la /00.",
+      "sha256": "0737cefe76635f032ea68ad368677360f023674951620d4acae001f4e8e82b1d",
+      "pagini_pdf": 50
+    },
+    {
+      "id": "manual_airfryer",
+      "fisier": "philips_hd9252_manual_ro.pdf",
+      "tip": "manual",
+      "url": "https://dam.versuni.com/m/68bf55e3b6eaf085/original/Airfryer-Spectre-HD925x-User-Manual-RO.pdf",
+      "limba": "ro",
+      "dovada_model": "HD925",
+      "note": "Document comun HD925x, legat din suportul oficial pentru HD9252.",
+      "sha256": "ef48878574d66eb74ec7d2a4f0cc516c934d3760f03952a0bea3fb59f52e1aed",
+      "pagini_pdf": 24
+    },
+    {
+      "id": "manual_aspirator",
+      "fisier": "samsung_vc07m2110sb_manual_ro.pdf",
+      "tip": "manual",
+      "url": "https://downloadcenter.samsung.com/content/UM/202603/20260326100857540/O-DJ68-00758L-09_IB_VC2100_GE_RO_251203.pdf",
+      "limba": "ro",
+      "dovada_model": "SC07M21",
+      "note": "Manual de familie, legat din suportul exact VC07M2110SB/GE; aliasul de suport este SC07M2110SB.",
+      "sha256": "b3cb80d68a94e983474b2f6342f65f342333fc2ada6869d7e669b321cbc1eade",
+      "pagini_pdf": 20
+    },
+    {
+      "id": "manual_robot",
+      "fisier": "samsung_vr05r5050wk_manual_ro.pdf",
+      "tip": "manual",
+      "url": "https://downloadcenter.samsung.com/content/PM/202007/20200710133232637/FR/i5_SR_A5_full_version_20200527-Romanian.pdf",
+      "limba": "ro",
+      "dovada_model": "VR05R50",
+      "note": "Manual complet full_version, fileID 7755199 din suportul exact; nu este Quick Guide.",
+      "sha256": "ecee5a130241216c9f648ff4f352716ee3350663e226d08c3b2b30270659d64a",
+      "pagini_pdf": 15
+    },
+    {
+      "id": "garantie_bosch",
+      "fisier": "bosch_conditii_garantie_ro_multilingv.pdf",
+      "tip": "garantie_generala",
+      "url": "https://media3.bsh-group.com/Documents/8001253266_B.pdf",
+      "limba": "multilingv, include ro",
+      "pagini_ro": [
+        19,
+        20
+      ],
+      "versiune": "01/2022",
+      "note": "Conditii generale BSH/Bosch pentru Romania; nu este certificat nominal. Nu dovedeste participarea la extensii promotionale.",
+      "sha256": "b16dbe0f1560dc520148fb513f8c8d8c96d46d9b75e5f06f98961118e924be19",
+      "pagini_pdf": 32
+    },
+    {
+      "id": "garantie_philips",
+      "fisier": "philips_versuni_conditii_garantie_ro.txt",
+      "tip": "garantie_generala",
+      "url": "https://www.home.id/ro-RO/warranty",
+      "limba": "ro",
+      "format_sursa": "html",
+      "note": "Politica integrala Home.ID/Versuni Romania, convertita din HTML in text; nu doar formularul Warranty_Stamps. TXT este pagina 1 la indexare.",
+      "sha256": "a88a0b83a7801dab4c80ee7dbb6dddbff7932491682da00b83866605ee3557a4",
+      "pagini_pdf": null
+    },
+    {
+      "id": "garantie_samsung",
+      "fisier": "samsung_conditii_garantie_ro_2026.pdf",
+      "tip": "garantie_generala",
+      "url": "https://images.samsung.com/is/content/samsung/assets/ro/terms-and-conditions/warranty-certificate-romanian-version-June2026.pdf",
+      "limba": "ro",
+      "versiune": "06/2026",
+      "note": "Certificat general necompletat, cu conditii; nu reprezinta garantia personala a celor doua produse.",
+      "sha256": "3a4d6c9705755e18e3c7f867891a37fa18bbf3159eaa325c53081703e5d35394",
+      "pagini_pdf": 2
+    }
+  ],
+  "aparate": [
+    {
+      "id": "frigider",
+      "categorie": "Frigider / combina frigorifica",
+      "producator": "Bosch",
+      "model": "KFN96VPEA",
+      "pagina_oficiala": "https://www.bosch-home.ro/supportdetail/product/KFN96VPEA/01",
+      "manual": "manual_frigider",
+      "garantie": "garantie_bosch"
+    },
+    {
+      "id": "spalat_rufe",
+      "categorie": "Masina de spalat rufe",
+      "producator": "Bosch",
+      "model": "WGG244Z2BY",
+      "pagina_oficiala": "https://www.bosch-home.ro/ro/mkt-product/masini-de-spalat-rufe-si-uscatoare/masini-de-spalat-rufe/masini-de-spalat-rufe-cu-incarcare-frontala/WGG244Z2BY",
+      "manual": "manual_spalat_rufe",
+      "garantie": "garantie_bosch"
+    },
+    {
+      "id": "uscator",
+      "categorie": "Uscator de rufe",
+      "producator": "Bosch",
+      "model": "WTH85207BY",
+      "pagina_oficiala": "https://www.bosch-home.ro/ro/mkt-product/masini-de-spalat-rufe-si-uscatoare/uscatoare-de-rufe/uscatoare-cu-pompa-de-cadura/WTH85207BY",
+      "manual": "manual_uscator",
+      "garantie": "garantie_bosch"
+    },
+    {
+      "id": "spalat_vase",
+      "categorie": "Masina de spalat vase",
+      "producator": "Bosch",
+      "model": "SMS4HVI02E",
+      "pagina_oficiala": "https://www.bosch-home.co.uk/supportdetail/product/SMS4HVI02E/75",
+      "manual": "manual_spalat_vase",
+      "garantie": "garantie_bosch",
+      "note": "Model confirmat pe suport UK; documentatia si garantia selectate sunt pentru Romania. E-Nr /75 este exemplul de suport, nu identificarea unui aparat personal."
+    },
+    {
+      "id": "microunde",
+      "categorie": "Cuptor cu microunde",
+      "producator": "Bosch",
+      "model": "FFL020MS2",
+      "pagina_oficiala": "https://www.bosch-home.ro/ro/mkt-product/aparate-pentru-gatit/microunde/cuptor-cu-microunde-independent/FFL020MS2",
+      "manual": "manual_microunde",
+      "garantie": "garantie_bosch"
+    },
+    {
+      "id": "cafea",
+      "categorie": "Aparat de cafea / espresor automat",
+      "producator": "Philips Home / Versuni",
+      "model": "EP2220/10",
+      "pagina_oficiala": "https://www.philips.ro/c-p/EP2220_10/-/support",
+      "pagina_manual": "https://www.home.id/ro-RO/EP2220",
+      "manual": "manual_cafea",
+      "garantie": "garantie_philips"
+    },
+    {
+      "id": "blender",
+      "categorie": "Blender de masa",
+      "producator": "Philips Home / Versuni",
+      "model": "HR3760/00",
+      "pagina_oficiala": "https://www.philips.ro/c-p/HR3760_00/7000-series-high-speed-blender/support",
+      "manual": "manual_blender",
+      "garantie": "garantie_philips"
+    },
+    {
+      "id": "airfryer",
+      "categorie": "Friteuza cu aer cald",
+      "producator": "Philips Home / Versuni",
+      "model": "HD9252/90",
+      "pagina_oficiala": "https://acc.philips.ro/c-p/HD9252_90/3000-series-airfryer/support",
+      "pagina_manual": "https://www.home.id/ro-RO/HD9252",
+      "manual": "manual_airfryer",
+      "garantie": "garantie_philips"
+    },
+    {
+      "id": "aspirator",
+      "categorie": "Aspirator fara sac",
+      "producator": "Samsung",
+      "model": "VC07M2110SB/GE",
+      "model_alias": "SC07M2110SB",
+      "pagina_oficiala": "https://www.samsung.com/ro/support/model/VC07M2110SB/GE/",
+      "manual": "manual_aspirator",
+      "garantie": "garantie_samsung"
+    },
+    {
+      "id": "robot",
+      "categorie": "Aspirator robot",
+      "producator": "Samsung",
+      "model": "VR05R5050WK/OL",
+      "familie": "VR05R50 / POWERbot-E",
+      "note": "Nu presupunem ca extensiile pentru alte serii, precum JetBot, se aplica acestui model.",
+      "pagina_oficiala": "https://www.samsung.com/ro/support/model/VR05R5050WK/OL/",
+      "manual": "manual_robot",
+      "garantie": "garantie_samsung"
+    }
+  ]
+}
