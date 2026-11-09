@@ -107,11 +107,43 @@ La prima rulare modelul se descarcă în `.model_cache`.
 Folosesc `upsert`, în loturi de 100, în colecția `proiect_final_electrocasnice`.
 La reindexare refac doar această colecție, ca să nu rămână duplicate sau surse vechi.
 
-Agentul validează întrebarea cu Pydantic. Unealta validează separat argumentele,
-caută semantic 10 fragmente din manualul și garanția aparatului ales și întoarce
-text simplu, validat cu `RootModel[str]`. Dacă sunt mai puține fragmente, le folosește pe cele disponibile.
-Textul ajunge în mesajul `tool`, apoi modelul formulează răspunsul final.
+Agentul validează întrebarea cu Pydantic. Unealta validează separat argumentele
+și caută hibrid, ca în lecția 8:
+
+- Chroma caută după sens. Păstrez candidații semantici cu distanță cosinus de cel mult `0.5`.
+- BM25 caută după cuvinte și coduri. Păstrez doar scorurile pozitive.
+- Combin clasamentele: locul 1 primește 1 punct, locul 2 primește 1/2 etc.
+- Aleg cele mai bune 10 fragmente, cu fișier, pagină și numărul fragmentului.
+
+BM25 poate recupera un pasaj cu termeni exacți chiar dacă acel pasaj nu a trecut
+pragul semantic. Indexul BM25 este refolosit cât timp textele nu se schimbă.
+În interfață căutarea este în toată biblioteca. În terminal folosesc manualul
+și garanția aparatului ales, prin filtrul de metadate `source`.
+
+Contextul uneltei este text simplu, validat cu `RootModel[str]`.
+LangGraph coordonează trei pași: `agent → cautare → raspuns`.
+Starea este validată cu Pydantic, iar reducer-ul adaugă mesajele la conversație.
+Textul găsit ajunge în mesajul `tool`, înaintea răspunsului final.
+Dacă nu există rezultate relevante, graful se încheie cu un mesaj scurt,
+fără al doilea apel LLM. Graful nu are bucle: face cel mult două apeluri LLM pe întrebare.
 Fragmentele găsite sunt trimise furnizorului API configurat pentru acest răspuns.
+
+## Legătura cu lecțiile
+
+| Lecție / temă | Unde o folosesc |
+|---|---|
+| Python, clase, JSON, fișiere, șiruri | Catalog, citirea documentelor, tokenizarea pentru BM25 |
+| Lecția 3: Pydantic | Întrebare, argumentele uneltei, context și starea grafului |
+| Lecția 6: agent cu unelte | Schema `rag_search`, apelarea uneltei, mesajul `tool` și răspunsul LLM |
+| Lecția 8: RAG și hybrid search | Chunking, embeddings, Chroma, BM25 și combinarea clasamentelor în `cautare.py` |
+| Lecțiile 9–10: LangGraph | Noduri, stare, reducer și ramura fără rezultate în `agent.py` |
+| Tema cu prag de distanță | Filtrarea candidaților din căutarea semantică |
+
+Surse: [lecția 8](https://github.com/doublemacro/python-ai/blob/main/lesson_08_semantic_search.py),
+[lecția 10](https://github.com/doublemacro/python-ai/blob/main/lesson_10_langgraph.py).
+Reordonarea este făcută prin combinarea clasamentelor din curs. Tema opțională
+cu `CrossEncoder` rămâne în `tema_3_optionala.py`; aici păstrez cele 10 fragmente
+cerute de proiectul final și evit încărcarea unui model suplimentar.
 
 Răspunsul trebuie să indice fișierul și pagina PDF. Dacă informația nu apare în
 documente, agentului i se cere să spună asta. Condițiile generale nu confirmă
@@ -131,11 +163,11 @@ corectitudinea răspunsului; verific pasajul original.
 ## Verificare scurtă
 
 ```powershell
-uv run python -m pytest tests/test_proiect_final.py -q -p no:cacheprovider --basetemp=../.tools/pytest-final-electrocasnice
+uv run --extra semantic-search python -m pytest tests/test_proiect_final.py -q -p no:cacheprovider --basetemp=../.tools/pytest-final-electrocasnice
 ```
 
-Sunt doar trei teste: indexarea și paginile, validarea și filtrarea pe aparat,
-apoi trimiterea contextului în mesajele LLM. Folosesc un LLM simulat.
+Sunt doar trei teste: indexarea și paginile; validarea, căutarea hibridă și pragul;
+apoi fluxul grafului și trimiterea contextului în mesajele LLM. Folosesc un LLM simulat.
 
 Dacă `uv` nu este în PATH, pot folosi `..\.tools\uv\uv.exe`.
 După instalare, programele merg și cu `.\.venv\Scripts\python.exe`,

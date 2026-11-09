@@ -33,6 +33,7 @@ langgraph = [
 ]
 semantic-search = [
     { name = "chromadb" },
+    { name = "langgraph" },
     { name = "pymupdf4llm" },
     { name = "rank-bm25" },
     { name = "sentence-transformers" },
@@ -47,6 +48,7 @@ dev = [
 requires-dist = [
     { name = "chromadb", marker = "extra == 'semantic-search'", specifier = ">=1.5.9" },
     { name = "langgraph", marker = "extra == 'langgraph'", specifier = ">=1.2.16" },
+    { name = "langgraph", marker = "extra == 'semantic-search'", specifier = ">=1.2.16" },
     { name = "openai", specifier = ">=3.19.0" },
     { name = "pydantic", extras = ["email"], specifier = ">=2,<3" },
     { name = "pymupdf4llm", marker = "extra == 'semantic-search'", specifier = ">=1.28.2" },

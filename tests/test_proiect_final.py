@@ -59,25 +59,38 @@ def test_validare_intrebare_si_context_text():
             agent.ContextRAG.model_validate(valoare)
     assert agent.IntrebareRAG(question="  Ce cere garantia?  ").question == "Ce cere garantia?"
     collection, model = Mock(), Mock()
-    collection.count.return_value = 12
-    collection.get.return_value = {"ids": list(range(12))}
+    texte = [f"Manual despre curatarea aparatului. Exemplul {i}." for i in range(11)]
+    texte.append("Pentru garantie sunt necesare factura fiscala si certificatul de garantie.")
+    metadate = [{"source": f"manual{i}.txt", "page": 1, "chunk": 1} for i in range(11)]
+    metadate.append({"source": "garantie.txt", "page": 19, "chunk": 7})
+    collection.get.return_value = {"documents": texte, "metadatas": metadate}
+    # Căutarea semantică ratează garanția. BM25 trebuie să o recupereze.
     collection.query.return_value = {
-        "documents": [["Este necesara dovada achizitiei."]],
-        "metadatas": [[{"source": "garantie.txt", "page": 1, "chunk": 3}]],
+        "documents": [texte[:10]], "metadatas": [metadate[:10]], "distances": [[0.2] * 10],
     }
     model.encode.return_value.tolist.return_value = [1.0, 0.0]
-    surse = ["manual.pdf", "garantie.txt"]
-    context = agent.rag_search('{"question":"Ce document este necesar?"}', collection, model, surse)
+    argumente = '{"question":"factura fiscala garantie"}'
+    context = agent.rag_search(argumente, collection, model)
     assert isinstance(context, str)
-    assert context == "[garantie.txt, pagina 1, fragment 3]\nEste necesara dovada achizitiei."
+    assert "[garantie.txt, pagina 19, fragment 7]" in context
+    assert context.count("fragment ") == 10
     assert collection.query.call_args.kwargs["n_results"] == 10
-    assert collection.query.call_args.kwargs["where"] == {"source": {"$in": surse}}
-    # Interfața caută în toate documentele, fără selectarea fișierelor.
-    collection.reset_mock()
-    agent.rag_search('{"question":"Ce document este necesar?"}', collection, model)
     assert collection.query.call_args.kwargs["where"] is None
-    collection.count.assert_called_once()
-    collection.get.assert_not_called()
+
+    # Pragul semantic elimină potrivirile slabe; BM25 poate păstra potrivirea exactă.
+    collection.query.return_value["distances"] = [[0.9] * 10]
+    context = agent.rag_search(argumente, collection, model)
+    assert context == "[garantie.txt, pagina 19, fragment 7]\n" + texte[-1]
+    assert agent.rag_search('{"question":"zzzxxyy999"}', collection, model) == agent.FARA_REZULTATE
+
+    surse = ["manual.pdf", "garantie.txt"]
+    collection.get.return_value = {"documents": texte[-1:], "metadatas": metadate[-1:]}
+    collection.query.return_value = {
+        "documents": [texte[-1:]], "metadatas": [metadate[-1:]], "distances": [[0.2]],
+    }
+    agent.rag_search(argumente, collection, model, surse)
+    assert collection.query.call_args.kwargs["where"] == {"source": {"$in": surse}}
+    assert collection.get.call_args.kwargs["where"] == {"source": {"$in": surse}}
     with pytest.raises(ValidationError):
         agent.rag_search('{"question":25}', collection, model, surse)
 
@@ -113,3 +126,13 @@ def test_agentul_trimite_contextul_in_mesajul_tool(monkeypatch):
     rezultat = agent.raspunde(client, "model-test", mesaje, None, None, surse)
     assert rezultat == mesaje[-1]["content"]
     assert "Incearca din nou" in rezultat
+
+    # Ramura fără rezultate se încheie fără al doilea apel LLM.
+    client.reset_mock()
+    client.chat.completions.create.side_effect = [SimpleNamespace(choices=[SimpleNamespace(message=apel)])]
+    cautare.return_value = agent.FARA_REZULTATE
+    mesaje = [{"role": "user", "content": "Ce document este necesar?"}]
+    assert agent.raspunde(client, "model-test", mesaje, None, None) == agent.FARA_REZULTATE
+    assert client.chat.completions.create.call_count == 1
+    assert mesaje[-2]["role"] == "tool"
+    assert mesaje[-1]["content"] == agent.FARA_REZULTATE

@@ -1,11 +1,14 @@
 import os
 import sys
+from typing import Annotated
 
 from dotenv import load_dotenv
+from langgraph.graph import END, START, StateGraph
 from openai import APIError, OpenAI
 from pydantic import BaseModel, ConfigDict, Field, RootModel, ValidationError
 
 from proiect_final.indexare import COLECTIE, PROIECT, citeste_catalog, conecteaza, incarca_model
+from proiect_final.cautare import cauta
 
 
 class IntrebareRAG(BaseModel):
@@ -16,6 +19,18 @@ class IntrebareRAG(BaseModel):
 class ContextRAG(RootModel[str]):
     # Unealta trebuie să întoarcă text simplu.
     root: str = Field(min_length=1, strict=True)
+
+
+def adauga_mesaje(vechi, noi):
+    return vechi + noi
+
+
+class StareAgent(BaseModel):
+    mesaje: Annotated[list[dict], adauga_mesaje] = Field(default_factory=list)
+    raspuns: str = ""
+
+
+FARA_REZULTATE = "Nu am găsit fragmente relevante pentru această întrebare."
 
 
 # Spunem modelului să folosească documentele și să citeze sursa.
@@ -45,59 +60,73 @@ UNEALTA_RAG = {
 
 def rag_search(argumente, collection, model, surse=None):
     cerere = IntrebareRAG.model_validate_json(argumente)
-    # Alegerea aparatului vine din program, nu din argumentele inventate de LLM.
-    filtru = {"source": {"$in": surse}} if surse else None
-    total = len(collection.get(where=filtru, include=[])["ids"]) if filtru else collection.count()
-    if total == 0:
-        return ContextRAG.model_validate("Nu sunt documente indexate. Ruleaza intai indexarea.").root
-    vector = model.encode(cerere.question, normalize_embeddings=True).tolist()
-    rezultate = collection.query(
-        query_embeddings=[vector], n_results=min(10, total),
-        where=filtru,
-        include=["documents", "metadatas", "distances"],
-    )
+    rezultate = cauta(collection, model, cerere.question, surse)
     fragmente = []
-    for text, metadate in zip(rezultate["documents"][0], rezultate["metadatas"][0]):
+    for rezultat in rezultate:
         fragmente.append(
-            f"[{metadate['source']}, pagina {metadate['page']}, fragment {metadate['chunk']}]\n{text}"
+            f"[{rezultat['source']}, pagina {rezultat['page']}, fragment {rezultat['chunk']}]\n{rezultat['text']}"
         )
-    context = "\n\n".join(fragmente) or "Nu s-a gasit niciun rezultat relevant."
+    context = "\n\n".join(fragmente) or FARA_REZULTATE
     return ContextRAG.model_validate(context).root
 
 
+def construieste_graf(client, model_llm, collection, model_embedding, surse=None):
+    def cere_cautare(stare):
+        mesaj = client.chat.completions.create(
+            model=model_llm, messages=stare.mesaje, tools=[UNEALTA_RAG],
+            tool_choice={"type": "function", "function": {"name": "rag_search"}},
+            parallel_tool_calls=False, max_tokens=1024,
+        ).choices[0].message
+        apeluri = mesaj.tool_calls or []
+        if len(apeluri) != 1 or apeluri[0].function.name != "rag_search":
+            raise ValueError("Modelul nu a apelat rag_search. Verifica suportul pentru unelte.")
+        return {"mesaje": [mesaj.model_dump(exclude_none=True)]}
+
+    def executa_cautare(stare):
+        apel = stare.mesaje[-1]["tool_calls"][0]
+        argumente_invalide = False
+        try:
+            context = rag_search(apel["function"]["arguments"], collection, model_embedding, surse)
+        except ValidationError:
+            context = "Argumente invalide pentru rag_search. Scrie o intrebare nevida."
+            argumente_invalide = True
+        context = ContextRAG.model_validate(context).root
+        mesaje = [{"role": "tool", "tool_call_id": apel["id"], "content": context}]
+        if context == FARA_REZULTATE or argumente_invalide:
+            # Fără context util, nu mai facem încă un apel API.
+            mesaje.append({"role": "assistant", "content": context})
+            return {"mesaje": mesaje, "raspuns": context}
+        return {"mesaje": mesaje}
+
+    def raspuns_final(stare):
+        mesaje = stare.mesaje + [{"role": "system", "content": INSTRUCTIUNI}]
+        final = client.chat.completions.create(
+            model=model_llm, messages=mesaje, tools=[UNEALTA_RAG],
+            tool_choice="none", max_tokens=4096,
+        ).choices[0].message
+        if final.tool_calls:
+            raise ValueError("Modelul a cerut din nou unealta in locul raspunsului final. Incearca din nou.")
+        mesaj = final.model_dump(exclude_none=True)
+        mesaj["content"] = (final.content or "").strip() or "Modelul nu a trimis un raspuns text. Incearca din nou."
+        return {"mesaje": [mesaj], "raspuns": mesaj["content"]}
+
+    graf = StateGraph(StareAgent)
+    graf.add_node("agent", cere_cautare)
+    graf.add_node("cautare", executa_cautare)
+    graf.add_node("raspuns", raspuns_final)
+    graf.add_edge(START, "agent")
+    graf.add_edge("agent", "cautare")
+    graf.add_conditional_edges("cautare", lambda stare: END if stare.raspuns else "raspuns")
+    graf.add_edge("raspuns", END)
+    return graf.compile()
+
+
 def raspunde(client, model_llm, mesaje, collection, model_embedding, surse=None):
-    # 1. Modelul cere o căutare în documente.
-    raspuns = client.chat.completions.create(
-        model=model_llm, messages=mesaje, tools=[UNEALTA_RAG],
-        tool_choice={"type": "function", "function": {"name": "rag_search"}},
-        parallel_tool_calls=False, max_tokens=1024,
-    ).choices[0].message
-    apeluri = raspuns.tool_calls or []
-    if len(apeluri) != 1 or apeluri[0].function.name != "rag_search":
-        raise ValueError("Modelul nu a apelat rag_search. Verifica suportul pentru unelte.")
-    apel = apeluri[0]
-    # 2. Executăm căutarea cerută de model.
-    try:
-        context = rag_search(apel.function.arguments, collection, model_embedding, surse)
-    except ValidationError:
-        context = ContextRAG.model_validate(
-            "Argumente invalide pentru rag_search. Este necesara o intrebare text nevida."
-        ).root
-
-    # 3. Punem rezultatul în conversație, cu același ID al apelului.
-    mesaje.append(raspuns.model_dump(exclude_none=True))
-    mesaje.append({"role": "tool", "tool_call_id": apel.id, "content": context})
-
-    # 4. Modelul răspunde folosind rezultatul. Reamintim și limba răspunsului.
-    mesaje_finale = mesaje + [{"role": "system", "content": INSTRUCTIUNI}]
-    # Modelul are nevoie de loc și pentru raționament, și pentru răspuns.
-    final = client.chat.completions.create(
-        model=model_llm, messages=mesaje_finale, tools=[UNEALTA_RAG], tool_choice="none", max_tokens=4096,
-    ).choices[0].message
-    mesaj_final = final.model_dump(exclude_none=True)
-    mesaj_final["content"] = final.content or "Modelul nu a trimis un raspuns text. Incearca din nou."
-    mesaje.append(mesaj_final)
-    return mesaj_final["content"]
+    # Graful are trei pași și cel mult două apeluri LLM.
+    graf = construieste_graf(client, model_llm, collection, model_embedding, surse)
+    rezultat = graf.invoke({"mesaje": mesaje})
+    mesaje[:] = rezultat["mesaje"]
+    return rezultat["raspuns"]
 
 
 def alege_aparat(catalog):
