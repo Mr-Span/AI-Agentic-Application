@@ -2,11 +2,11 @@
 
 Teme pentru curs, in Python. Proiect initializat cu uv, teste cu pytest.
 
-Proiectul final este in [proiect_final](proiect_final/README.md): un asistent pentru
-manualele si garantiile a 10 electrocasnice. Are indexare separata, server Chroma
+Proiectul final este in [SpanClaudiu_ElectrocasNicu](SpanClaudiu_ElectrocasNicu/README.md): un asistent pentru
+documente PDF/TXT in romana dintr-un folder. Are indexare separata, server Chroma
 local si agent cu unealta RAG Search, cu input si output validate prin Pydantic.
-Foloseste cautare hibrida (semantic + BM25) si un flux LangGraph cu trei pasi.
-Are si o interfata locala cu chat, incarcare de documente si buton de indexare.
+Foloseste cautare hibrida (semantic + BM25) si un flux simplu de functii Python.
+Are si o interfata locala cu chat si buton de indexare, fara selectarea manuala a aparatului.
 
 ## Tema 1
 
@@ -115,8 +115,9 @@ Am preluat clarificarea. Nu sunt lectii noi sau schimbari de dependinte.
 
 `user_data.json`, `paragraphs.txt`, `t.txt`, `StarMaker.pdf`, `invoices.pdf`,
 `info.json`, `log_report.txt`, `log_report_ok.txt`, `pytest.ini` si testele de
-validare sunt preluate din repository-ul profesorului. Pentru lectiile 8 si 9
-bibliotecile se instaleaza prin extra `semantic-search`, respectiv `langgraph`.
+validare sunt preluate din repository-ul profesorului. Pentru lectia 8 folosesc extra `semantic-search`. Lectiile 9 si 10 sunt exemple
+separate de curs; biblioteca lor se adauga doar la rularea explicita cu `--with`.
+Proiectul final nu foloseste si nu instaleaza LangGraph.
 
 Parcurg lectiile in ordinea numerelor. Fiecare se ruleaza separat, de exemplu:
 
@@ -304,20 +305,20 @@ flowchart LR
     D --> E
 ```
 
-Instaleaza toate bibliotecile cursului:
+Instaleaza bibliotecile proiectului final:
 
 ```powershell
-uv sync --locked --extra semantic-search --extra langgraph
+uv sync --locked --extra semantic-search --extra interfata
 ```
 
-Pentru aceasta lectie sunt suficiente `uv sync --locked --extra langgraph` si
-Python; nu ai nevoie de modelul de embeddings sau de cheie OpenRouter.
+Exemplele LangGraph de curs se ruleaza separat cu `uv run --with langgraph
+--with requests`. Aceste pachete nu sunt dependinte ale proiectului final.
 
 Ruleaza cele doua exemple, pe rand:
 
 ```powershell
-uv run --extra langgraph python lesson_09_langgraph.py
-uv run --extra langgraph python lesson_09_langgraph.py --log log_report_ok.txt
+uv run --with langgraph --with requests python lesson_09_langgraph.py
+uv run --with langgraph --with requests python lesson_09_langgraph.py --log log_report_ok.txt
 ```
 
 Primul gaseste **2 erori** si simuleaza raportarea unui incident.
@@ -326,8 +327,7 @@ Programul verifica nivelul de log de dupa data si ora, astfel ca un mesaj
 `INFO` care contine cuvantul `ERROR` ramane o linie informativa.
 
 Daca `uv` nu este in PATH, foloseste executabilul `..\.tools\uv\uv.exe`
-in loc de `uv`. Bibliotecile sunt deja instalate in mediul virtual local,
-deci poti rula si direct:
+in loc de `uv`. Rularea directa de mai jos necesita instalarea separata a bibliotecilor lectiei:
 
 ```powershell
 .\.venv\Scripts\python.exe lesson_09_langgraph.py
@@ -337,7 +337,7 @@ deci poti rula si direct:
 Pentru cererea HTTP de demonstratie de la curs:
 
 ```powershell
-uv run --extra langgraph python lesson_09_langgraph.py --api
+uv run --with langgraph --with requests python lesson_09_langgraph.py --api
 ```
 
 `--api` trimite un POST la JSONPlaceholder cu numarul de erori in titlu.
@@ -363,7 +363,7 @@ Fluxul urmeaza [Graph API din documentatia LangGraph](https://docs.langchain.com
 ## Verificare
 
 ```powershell
-uv run --extra semantic-search --extra langgraph python -m pytest -q
+uv run --extra semantic-search --extra interfata python -m pytest -q
 ```
 
 Pe 22 octombrie 2026, cele 43 de teste trec. Acopera cautarea hibrida,
@@ -381,9 +381,9 @@ Graful citeste logul, lasa agentul sa ceara o unealta si revine la agent pentru 
 Un reducer pastreaza mesajele vechi, iar numarul de pasi este limitat la 6.
 
 ```powershell
-uv sync --locked --extra langgraph
-uv run --extra langgraph python lesson_10_langgraph.py --demo
-uv run --extra langgraph python lesson_10_langgraph.py --demo --log log_report_ok.txt
+# Bibliotecile lectiei sunt adaugate temporar prin --with la rulare.
+uv run --with langgraph --with requests python lesson_10_langgraph.py --demo
+uv run --with langgraph --with requests python lesson_10_langgraph.py --demo --log log_report_ok.txt
 ```
 
 `--demo` merge fara cheie si fara apeluri LLM. Fara acest argument, folosim

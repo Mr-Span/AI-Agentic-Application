@@ -89,7 +89,7 @@ def main():
         graph = build_graph()
         result = graph.invoke(State(log_file=args.log, simulate_api=not args.api))
     except ImportError:
-        raise SystemExit("Instaleaza bibliotecile: uv sync --locked --extra langgraph")
+        raise SystemExit("Ruleaza lectia separat: uv run --with langgraph --with requests python lesson_09_langgraph.py")
     except (OSError, ValueError):
         raise SystemExit("Nu pot citi raportul. Alege un fisier .txt din proiect.")
     print("Erori gasite:", len(result["errors"]))

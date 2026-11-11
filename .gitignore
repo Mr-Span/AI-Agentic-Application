@@ -20,9 +20,8 @@ wheels/
 chroma_db/
 .model_cache/
 
-# Datele serverului Chroma pentru proiectul final rămân locale.
-proiect_final/chroma_data/
+# Datele serverului Chroma rămân locale.
+SpanClaudiu_ElectrocasNicu/chroma_data/
 
-# Manualele producătorilor se descarcă local; publicăm catalogul și sursele.
-proiect_final/electrocasnice/documente/
-proiect_final/electrocasnice/verificare_locala.json
+# Documentele rămân locale.
+SpanClaudiu_ElectrocasNicu/documente/

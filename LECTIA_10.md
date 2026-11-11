@@ -33,17 +33,15 @@ Ca în exemplul profesorului, raportarea este o **simulare**, fără POST către
 
 ## Cum rulez
 
-Din folderul `AI-Agentic-Application`, instalez bibliotecile deja prevăzute pentru LangGraph:
-
-```powershell
-uv sync --locked --extra langgraph
-```
+Acesta este un exemplu separat de curs. Proiectul final nu folosește LangGraph.
+Din folderul `AI-Agentic-Application`, `--with` adaugă bibliotecile doar pentru
+rularea acestei lecții, fără să le includă în dependențele proiectului.
 
 Întâi încerc fără cheie și fără consum API:
 
 ```powershell
-uv run --extra langgraph python lesson_10_langgraph.py --demo
-uv run --extra langgraph python lesson_10_langgraph.py --demo --log log_report_ok.txt
+uv run --with langgraph --with requests python lesson_10_langgraph.py --demo
+uv run --with langgraph --with requests python lesson_10_langgraph.py --demo --log log_report_ok.txt
 ```
 
 Primul raport are **2 erori**: agentul cere unealta, apoi dă raportul final,
@@ -52,13 +50,13 @@ Primul raport are **2 erori**: agentul cere unealta, apoi dă raportul final,
 Pentru a vedea istoricul adunat de reducer:
 
 ```powershell
-uv run --extra langgraph python lesson_10_langgraph.py --demo --mesaje
+uv run --with langgraph --with requests python lesson_10_langgraph.py --demo --mesaje
 ```
 
 Pentru LLM real scot `--demo`:
 
 ```powershell
-uv run --extra langgraph python lesson_10_langgraph.py
+uv run --with langgraph --with requests python lesson_10_langgraph.py
 ```
 
 Folosesc `API_KEY` și `MODEL` din `.env`; merg și numele de la profesor,
@@ -66,12 +64,7 @@ Folosesc `API_KEY` și `MODEL` din `.env`; merg și numele de la profesor,
 Liniile cu erori sunt trimise la OpenRouter, iar raportarea incidentului rămâne simulată.
 Modelul ales trebuie să accepte unelte.
 
-Dacă `uv` nu este în PATH, folosesc `..\.tools\uv\uv.exe`.
-Bibliotecile sunt deja instalate local, deci merge și:
-
-```powershell
-.\.venv\Scripts\python.exe lesson_10_langgraph.py --demo
-```
+Dacă `uv` nu este în PATH, folosesc `..\.tools\uv\uv.exe` în comenzile de mai sus.
 
 ## Ce exersez
 
@@ -83,7 +76,7 @@ Bibliotecile sunt deja instalate local, deci merge și:
 ## Verificări minime
 
 ```powershell
-.\.venv\Scripts\python.exe -m pytest tests/test_langgraph_agent.py -q -p no:cacheprovider --basetemp=../.tools/pytest-lectia10
+uv run --with langgraph --with requests python -m pytest tests/test_langgraph_agent.py -q -p no:cacheprovider --basetemp=../.tools/pytest-lectia10
 ```
 
 Sunt doar trei teste: istoricul și unealta, ramura fără erori, apoi validarea
